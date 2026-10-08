@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/domain/enums/metric_type.dart';
 import '../../../../core/presentation/widgets/add_reading_bottom_sheet.dart';
@@ -9,26 +8,22 @@ import '../../../../core/presentation/widgets/app_error_view.dart';
 import '../../../../core/presentation/widgets/app_loading_indicator.dart';
 import '../../../../core/presentation/widgets/app_top_bar.dart';
 import '../../../../core/presentation/widgets/clamped_layout.dart';
-import '../../../../core/router/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../blood_pressure/domain/entities/blood_pressure_reading.dart';
 import '../../../blood_pressure/presentation/providers/blood_pressure_reading_list_notifier.dart';
-import '../../../blood_pressure/presentation/widgets/blood_pressure_reading_card.dart';
 import '../../../cholesterol/domain/entities/cholesterol_reading.dart';
 import '../../../cholesterol/presentation/providers/cholesterol_reading_list_notifier.dart';
-import '../../../cholesterol/presentation/widgets/cholesterol_reading_card.dart';
 import '../../../glucose/domain/entities/glucose_reading.dart';
 import '../../../glucose/presentation/providers/glucose_reading_list_notifier.dart';
-import '../../../glucose/presentation/widgets/glucose_reading_card.dart';
 import '../../../hba1c/domain/entities/hba1c_reading.dart';
 import '../../../hba1c/presentation/providers/hba1c_reading_list_notifier.dart';
-import '../../../hba1c/presentation/widgets/hba1c_reading_card.dart';
 import '../../../ketones/domain/entities/ketone_reading.dart';
 import '../../../ketones/presentation/providers/ketone_reading_list_notifier.dart';
-import '../../../ketones/presentation/widgets/ketone_reading_card.dart';
 import '../../../weight/domain/entities/weight_reading.dart';
 import '../../../weight/presentation/providers/weight_reading_list_notifier.dart';
-import '../../../weight/presentation/widgets/weight_reading_card.dart';
+import '../models/history_entry.dart';
+import '../widgets/history_card_builder.dart';
+import '../widgets/history_filter_chips.dart';
 
 /// Screen presenting chronological history of all logged health measurements with metric filtering.
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -89,7 +84,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       body: ClampedLayout(
         child: Column(
           children: [
-            _FilterChips(
+            HistoryFilterChips(
               selected: _filter,
               onSelected: (filter) => setState(() => _filter = filter),
             ),
@@ -135,8 +130,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   return RefreshIndicator(
                     onRefresh: () async => _refreshAll(),
                     child: ListView.separated(
-                      // Bottom clearance for the end-float FAB so the last
-                      // entry is never obscured.
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
                       itemCount: visible.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -179,7 +172,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               );
                             }
                           },
-                          child: _buildCard(context, entry),
+                          child: HistoryCardBuilder.build(context, entry),
                         );
                       },
                     ),
@@ -194,7 +187,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   /// Merges all metric readings into a single chronological list (newest first).
-  List<_HistoryEntry> _mergeEntries(
+  List<HistoryEntry> _mergeEntries(
     List<GlucoseReading> glucose,
     List<HbA1cReading> hba1c,
     List<BloodPressureReading> bloodPressure,
@@ -202,105 +195,45 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     List<CholesterolReading> cholesterol,
     List<WeightReading> weight,
   ) {
-    final entries = <_HistoryEntry>[
+    final entries = <HistoryEntry>[
       for (final r in glucose)
-        _HistoryEntry(
+        HistoryEntry(
           type: MetricType.glucose,
           createdAt: r.createdAt,
           reading: r,
         ),
       for (final r in hba1c)
-        _HistoryEntry(
+        HistoryEntry(
           type: MetricType.hba1c,
           createdAt: r.createdAt,
           reading: r,
         ),
       for (final r in bloodPressure)
-        _HistoryEntry(
+        HistoryEntry(
           type: MetricType.bloodPressure,
           createdAt: r.createdAt,
           reading: r,
         ),
       for (final r in ketones)
-        _HistoryEntry(
+        HistoryEntry(
           type: MetricType.ketones,
           createdAt: r.createdAt,
           reading: r,
         ),
       for (final r in cholesterol)
-        _HistoryEntry(
+        HistoryEntry(
           type: MetricType.cholesterol,
           createdAt: r.createdAt,
           reading: r,
         ),
       for (final r in weight)
-        _HistoryEntry(
+        HistoryEntry(
           type: MetricType.weight,
           createdAt: r.createdAt,
           reading: r,
         ),
     ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return entries;
-  }
-
-  /// Builds the reading card matching the entry's metric type.
-  Widget _buildCard(BuildContext context, _HistoryEntry entry) {
-    switch (entry.type) {
-      case MetricType.glucose:
-        final reading = entry.reading as GlucoseReading;
-        return GlucoseReadingCard(
-          reading: reading,
-          onTap: () => context.pushNamed(
-            AppRoute.editGlucose.name,
-            pathParameters: {'id': '${reading.id}'},
-          ),
-        );
-      case MetricType.hba1c:
-        final reading = entry.reading as HbA1cReading;
-        return HbA1cReadingCard(
-          reading: reading,
-          onTap: () => context.pushNamed(
-            AppRoute.editHba1c.name,
-            pathParameters: {'id': '${reading.id}'},
-          ),
-        );
-      case MetricType.bloodPressure:
-        final reading = entry.reading as BloodPressureReading;
-        return BloodPressureReadingCard(
-          reading: reading,
-          onTap: () => context.pushNamed(
-            AppRoute.editBloodPressure.name,
-            pathParameters: {'id': '${reading.id}'},
-          ),
-        );
-      case MetricType.ketones:
-        final reading = entry.reading as KetoneReading;
-        return KetoneReadingCard(
-          reading: reading,
-          onTap: () => context.pushNamed(
-            AppRoute.editKetones.name,
-            pathParameters: {'id': '${reading.id}'},
-          ),
-        );
-      case MetricType.cholesterol:
-        final reading = entry.reading as CholesterolReading;
-        return CholesterolReadingCard(
-          reading: reading,
-          onTap: () => context.pushNamed(
-            AppRoute.editCholesterol.name,
-            pathParameters: {'id': '${reading.id}'},
-          ),
-        );
-      case MetricType.weight:
-        final reading = entry.reading as WeightReading;
-        return WeightReadingCard(
-          reading: reading,
-          onTap: () => context.pushNamed(
-            AppRoute.editWeight.name,
-            pathParameters: {'id': '${reading.id}'},
-          ),
-        );
-    }
   }
 
   int _readingId(Object reading) {
@@ -315,7 +248,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     };
   }
 
-  Future<void> _deleteEntry(_HistoryEntry entry) {
+  Future<void> _deleteEntry(HistoryEntry entry) {
     return switch (entry.reading) {
       GlucoseReading r =>
         ref.read(glucoseReadingListProvider.notifier).deleteReading(r.id),
@@ -333,7 +266,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     };
   }
 
-  Future<void> _restoreEntry(_HistoryEntry entry) {
+  Future<void> _restoreEntry(HistoryEntry entry) {
     return switch (entry.reading) {
       GlucoseReading r =>
         ref.read(glucoseReadingListProvider.notifier).addReading(r),
@@ -398,67 +331,5 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       MetricType.cholesterol => l10n.deleteCholesterolConfirm,
       MetricType.weight => l10n.deleteWeightConfirm,
     };
-  }
-}
-
-/// Single entry in the merged chronological history list.
-class _HistoryEntry {
-  /// Metric type of the reading.
-  final MetricType type;
-
-  /// Timestamp used for chronological sorting.
-  final DateTime createdAt;
-
-  /// The domain entity rendered by [_HistoryScreenState._buildCard].
-  final Object reading;
-
-  const _HistoryEntry({
-    required this.type,
-    required this.createdAt,
-    required this.reading,
-  });
-}
-
-/// Horizontal row of metric filter chips above the history list.
-class _FilterChips extends StatelessWidget {
-  /// Currently selected filter, or `null` for all metrics.
-  final MetricType? selected;
-
-  /// Callback invoked when a chip is selected.
-  final ValueChanged<MetricType?> onSelected;
-
-  const _FilterChips({required this.selected, required this.onSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    final chips = <({String label, MetricType? type})>[
-      (label: l10n.filterAll, type: null),
-      (label: l10n.glucose, type: MetricType.glucose),
-      (label: l10n.hba1c, type: MetricType.hba1c),
-      (label: l10n.bloodPressure, type: MetricType.bloodPressure),
-      (label: l10n.ketones, type: MetricType.ketones),
-      (label: l10n.cholesterol, type: MetricType.cholesterol),
-      (label: l10n.weight, type: MetricType.weight),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Row(
-        children: [
-          for (final chip in chips)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                label: Text(chip.label),
-                selected: selected == chip.type,
-                onSelected: (_) => onSelected(chip.type),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 }
