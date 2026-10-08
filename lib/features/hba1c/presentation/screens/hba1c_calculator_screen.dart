@@ -4,14 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/domain/enums/glucose_unit.dart';
 import '../../../../core/domain/enums/hba1c_unit.dart';
 import '../../../../core/domain/utils/glucose_converter.dart';
-import '../../../../core/presentation/utils/app_snackbar.dart';
 import '../../../../core/presentation/extensions/failure_ui_extension.dart';
+import '../../../../core/presentation/utils/app_snackbar.dart';
 import '../../../../core/presentation/widgets/clamped_layout.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/user_profile_notifier.dart';
-import '../providers/hba1c_reading_list_notifier.dart';
 import '../../domain/entities/hba1c_reading.dart';
+import '../providers/hba1c_reading_list_notifier.dart';
+import '../widgets/calculator/average_glucose_input_card.dart';
+import '../widgets/calculator/estimated_hba1c_input_card.dart';
+import '../widgets/calculator/formula_explanation_card.dart';
 
 /// Screen allowing bidirectional estimation between average glucose and glycated hemoglobin (HbA1c).
 class HbA1cCalculatorScreen extends ConsumerStatefulWidget {
@@ -172,29 +175,34 @@ class _HbA1cCalculatorScreenState extends ConsumerState<HbA1cCalculatorScreen> {
 
   double? get _currentHbA1cPercentage {
     final text = _hba1cController.text.trim();
+    if (text.isEmpty) return null;
     final parsed = double.tryParse(text.replaceAll(',', '.'));
     if (parsed == null || parsed <= 0) return null;
-    return _hba1cUnit == HbA1cUnit.mmolMol
-        ? GlucoseConverter.mmolMolToPercentage(parsed)
-        : parsed;
+
+    if (_hba1cUnit == HbA1cUnit.mmolMol) {
+      return GlucoseConverter.mmolMolToPercentage(parsed);
+    }
+    return parsed;
   }
 
   Future<void> _saveReading() async {
     final hba1cPercentage = _currentHbA1cPercentage;
-    if (hba1cPercentage == null) return;
+    if (hba1cPercentage == null || _isSaving) return;
 
     final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
 
     try {
-      final notifier = ref.read(hbA1cReadingListProvider.notifier);
-      final reading = HbA1cReading(
-        readingPercentage: hba1cPercentage,
-        notes: l10n.hba1cCalculatorAutoNote,
-        createdAt: DateTime.now(),
-      );
+      final (success, failure) = await ref
+          .read(hbA1cReadingListProvider.notifier)
+          .addReading(
+            HbA1cReading(
+              readingPercentage: hba1cPercentage,
+              createdAt: DateTime.now(),
+              notes: l10n.hba1cCalculatorAutoNote,
+            ),
+          );
 
-      final (success, failure) = await notifier.addReading(reading);
       if (mounted) {
         setState(() => _isSaving = false);
         if (success) {
@@ -250,70 +258,13 @@ class _HbA1cCalculatorScreenState extends ConsumerState<HbA1cCalculatorScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.4,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l10n.averageGlucose,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SegmentedButton<GlucoseUnit>(
-                          segments: [
-                            ButtonSegment(
-                              value: GlucoseUnit.mgDl,
-                              label: Text(GlucoseUnit.mgDl.displayName),
-                            ),
-                            ButtonSegment(
-                              value: GlucoseUnit.mmolL,
-                              label: Text(GlucoseUnit.mmolL.displayName),
-                            ),
-                          ],
-                          selected: {_glucoseUnit},
-                          onSelectionChanged: (selected) {
-                            if (selected.isNotEmpty) {
-                              _onGlucoseUnitChanged(selected.first);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Semantics(
-                      label: l10n.averageGlucose,
-                      child: TextField(
-                        controller: _glucoseController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: _glucoseUnit == GlucoseUnit.mgDl
-                              ? l10n.hba1cAvgGlucoseHintMgDl
-                              : l10n.hba1cAvgGlucoseHintMmolL,
-                          suffixText: _glucoseUnit.displayName,
-                          border: const OutlineInputBorder(),
-                        ),
-                        onChanged: _onGlucoseChanged,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            AverageGlucoseInputCard(
+              controller: _glucoseController,
+              unit: _glucoseUnit,
+              onUnitChanged: _onGlucoseUnitChanged,
+              onChanged: _onGlucoseChanged,
             ),
             const SizedBox(height: 16),
-
             Center(
               child: Icon(
                 Icons.swap_vert_rounded,
@@ -322,98 +273,15 @@ class _HbA1cCalculatorScreenState extends ConsumerState<HbA1cCalculatorScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.4,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l10n.estimatedHbA1c,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SegmentedButton<HbA1cUnit>(
-                          segments: [
-                            ButtonSegment(
-                              value: HbA1cUnit.percentage,
-                              label: Text(HbA1cUnit.percentage.displayName),
-                            ),
-                            ButtonSegment(
-                              value: HbA1cUnit.mmolMol,
-                              label: Text(HbA1cUnit.mmolMol.displayName),
-                            ),
-                          ],
-                          selected: {_hba1cUnit},
-                          onSelectionChanged: (selected) {
-                            if (selected.isNotEmpty) {
-                              _onHbA1cUnitChanged(selected.first);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Semantics(
-                      label: l10n.estimatedHbA1c,
-                      child: TextField(
-                        controller: _hba1cController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: _hba1cUnit == HbA1cUnit.percentage
-                              ? l10n.hba1cValueHintPercent
-                              : l10n.hba1cValueHintMmolMol,
-                          suffixText: _hba1cUnit.displayName,
-                          border: const OutlineInputBorder(),
-                        ),
-                        onChanged: _onHbA1cChanged,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            EstimatedHbA1cInputCard(
+              controller: _hba1cController,
+              unit: _hba1cUnit,
+              onUnitChanged: _onHbA1cUnitChanged,
+              onChanged: _onHbA1cChanged,
             ),
             const SizedBox(height: 20),
-
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: theme.colorScheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        l10n.adagFormulaExplanation,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const FormulaExplanationCard(),
             const SizedBox(height: 28),
-
             FilledButton.icon(
               onPressed: canSave ? _saveReading : null,
               icon: _isSaving
