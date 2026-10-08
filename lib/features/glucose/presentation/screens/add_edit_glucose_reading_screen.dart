@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-
 import '../../../../core/domain/enums/glucose_unit.dart';
 import '../../../../core/domain/enums/meal_context.dart';
-import '../../../../core/presentation/utils/picker_helpers.dart';
 import '../../../../core/domain/utils/glucose_converter.dart';
 import '../../../../core/domain/utils/meal_context_detector.dart';
 import '../../../../core/domain/utils/reading_validator.dart';
@@ -14,6 +11,9 @@ import '../../../../core/presentation/utils/app_snackbar.dart';
 import '../../../../core/presentation/utils/reading_validation_l10n.dart';
 import '../../../../core/presentation/widgets/app_loading_indicator.dart';
 import '../../../../core/presentation/widgets/clamped_layout.dart';
+import '../../../../core/presentation/widgets/form/delete_reading_dialog.dart';
+import '../../../../core/presentation/widgets/form/reading_date_time_picker.dart';
+import '../../../../core/presentation/widgets/form/reading_notes_field.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/user_profile_notifier.dart';
 import '../../domain/entities/glucose_reading.dart';
@@ -78,47 +78,6 @@ class _AddEditGlucoseReadingScreenState
     _selectedContext = reading.mealContext;
     _selectedDateTime = reading.createdAt;
     _notesController.text = reading.notes ?? '';
-  }
-
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final pickedDate = await PickerHelpers.showSafeDatePicker(
-      context: context,
-      initialDate: _selectedDateTime,
-      firstDate: DateTime(2000),
-      lastDate: now.add(const Duration(days: 1)),
-    );
-
-    if (pickedDate != null && mounted) {
-      setState(() {
-        _selectedDateTime = DateTime(
-          pickedDate.year,
-          pickedDate.month,
-          pickedDate.day,
-          _selectedDateTime.hour,
-          _selectedDateTime.minute,
-        );
-      });
-    }
-  }
-
-  Future<void> _pickTime() async {
-    final pickedTime = await PickerHelpers.showSafeTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-    );
-
-    if (pickedTime != null && mounted) {
-      setState(() {
-        _selectedDateTime = DateTime(
-          _selectedDateTime.year,
-          _selectedDateTime.month,
-          _selectedDateTime.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
-      });
-    }
   }
 
   Future<void> _onSave(GlucoseUnit preferredUnit) async {
@@ -200,26 +159,10 @@ class _AddEditGlucoseReadingScreenState
     if (!isEditMode) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.deleteReadingConfirmationTitle),
-        content: Text(l10n.deleteReadingConfirmationMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-            ),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+    final confirm = await DeleteReadingDialog.show(
+      context,
+      title: l10n.deleteReadingConfirmationTitle,
+      message: l10n.deleteReadingConfirmationMessage,
     );
 
     if (confirm != true || !mounted) return;
@@ -303,9 +246,6 @@ class _AddEditGlucoseReadingScreenState
     GlucoseUnit preferredUnit,
   ) {
     final theme = Theme.of(context);
-    final locale = Localizations.localeOf(context).toString();
-    final formattedDate = DateFormat.yMMMd(locale).format(_selectedDateTime);
-    final formattedTime = DateFormat.jm(locale).format(_selectedDateTime);
 
     return Scaffold(
       appBar: AppBar(
@@ -387,42 +327,14 @@ class _AddEditGlucoseReadingScreenState
                 ),
                 const SizedBox(height: 16),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(
-                          Icons.calendar_today_outlined,
-                          size: 18,
-                        ),
-                        label: Text(formattedDate),
-                        onPressed: _pickDate,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.access_time_outlined, size: 18),
-                        label: Text(formattedTime),
-                        onPressed: _pickTime,
-                      ),
-                    ),
-                  ],
+                ReadingDateTimePicker(
+                  selectedDateTime: _selectedDateTime,
+                  onDateTimeChanged: (dt) =>
+                      setState(() => _selectedDateTime = dt),
                 ),
                 const SizedBox(height: 16),
 
-                TextFormField(
-                  controller: _notesController,
-                  maxLines: 3,
-                  maxLength: 500,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    labelText: l10n.notes,
-                    hintText: l10n.notesHint,
-                    prefixIcon: const Icon(Icons.notes_outlined),
-                    alignLabelWithHint: true,
-                  ),
-                ),
+                ReadingNotesField(controller: _notesController),
                 const SizedBox(height: 24),
 
                 FilledButton.icon(

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-
 import '../../../../core/domain/utils/reading_validator.dart';
 import '../../../../core/presentation/extensions/failure_ui_extension.dart';
 import '../../../../core/presentation/utils/app_snackbar.dart';
-import '../../../../core/presentation/utils/picker_helpers.dart';
 import '../../../../core/presentation/utils/reading_validation_l10n.dart';
 import '../../../../core/presentation/widgets/app_loading_indicator.dart';
 import '../../../../core/presentation/widgets/clamped_layout.dart';
+import '../../../../core/presentation/widgets/form/delete_reading_dialog.dart';
+import '../../../../core/presentation/widgets/form/reading_date_time_picker.dart';
+import '../../../../core/presentation/widgets/form/reading_notes_field.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/blood_pressure_reading.dart';
 import '../providers/blood_pressure_reading_detail_notifier.dart';
@@ -63,44 +63,6 @@ class _AddEditBloodPressureReadingScreenState
     _diastolicController.text = reading.diastolicMmHg.toString();
     _notesController.text = reading.notes ?? '';
     _selectedDateTime = reading.createdAt;
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await PickerHelpers.showSafeDatePicker(
-      context: context,
-      initialDate: _selectedDateTime,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
-    );
-    if (picked != null && mounted) {
-      setState(() {
-        _selectedDateTime = DateTime(
-          picked.year,
-          picked.month,
-          picked.day,
-          _selectedDateTime.hour,
-          _selectedDateTime.minute,
-        );
-      });
-    }
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await PickerHelpers.showSafeTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-    );
-    if (picked != null && mounted) {
-      setState(() {
-        _selectedDateTime = DateTime(
-          _selectedDateTime.year,
-          _selectedDateTime.month,
-          _selectedDateTime.day,
-          picked.hour,
-          picked.minute,
-        );
-      });
-    }
   }
 
   Future<void> _save() async {
@@ -174,29 +136,13 @@ class _AddEditBloodPressureReadingScreenState
 
   Future<void> _delete() async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.deleteBloodPressure),
-        content: Text(l10n.deleteBloodPressureConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+    final confirmed = await DeleteReadingDialog.show(
+      context,
+      title: l10n.deleteBloodPressure,
+      message: l10n.deleteBloodPressureConfirm,
     );
 
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     setState(() => _isSaving = true);
     final notifier = ref.read(bloodPressureReadingListProvider.notifier);
@@ -266,10 +212,6 @@ class _AddEditBloodPressureReadingScreenState
     AppLocalizations l10n,
     String title,
   ) {
-    final locale = Localizations.localeOf(context).toString();
-    final dateFormat = DateFormat.yMMMd(locale);
-    final timeFormat = DateFormat.jm(locale);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -336,40 +278,14 @@ class _AddEditBloodPressureReadingScreenState
                 ),
                 const SizedBox(height: 16),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.calendar_today_outlined),
-                        label: Text(dateFormat.format(_selectedDateTime)),
-                        onPressed: _pickDate,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.access_time_outlined),
-                        label: Text(timeFormat.format(_selectedDateTime)),
-                        onPressed: _pickTime,
-                      ),
-                    ),
-                  ],
+                ReadingDateTimePicker(
+                  selectedDateTime: _selectedDateTime,
+                  onDateTimeChanged: (dt) =>
+                      setState(() => _selectedDateTime = dt),
                 ),
                 const SizedBox(height: 16),
 
-                TextFormField(
-                  controller: _notesController,
-                  maxLines: 3,
-                  maxLength: 500,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    labelText: l10n.notes,
-                    hintText: l10n.notesHint,
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.notes_outlined),
-                    alignLabelWithHint: true,
-                  ),
-                ),
+                ReadingNotesField(controller: _notesController),
                 const SizedBox(height: 24),
 
                 FilledButton.icon(
