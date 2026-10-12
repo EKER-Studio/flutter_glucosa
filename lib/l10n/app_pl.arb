@@ -1975,5 +1975,14 @@
         "type": "int"
       }
     }
+  },
+  "bleSyncFrom": "Pobierz z {device}",
+  "@bleSyncFrom": {
+    "description": "Przycisk pobrania odczytów z zapamiętanego glukometru",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
   }
 }

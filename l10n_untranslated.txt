@@ -49,7 +49,8 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ],
 
   "es": [
@@ -102,7 +103,8 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ],
 
   "fr": [
@@ -155,7 +157,8 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ],
 
   "it": [
@@ -208,7 +211,8 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ],
 
   "ja": [
@@ -261,7 +265,8 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ],
 
   "ko": [
@@ -314,7 +319,8 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ],
 
   "nl": [
@@ -367,7 +373,8 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ],
 
   "pl": [
@@ -456,6 +463,7 @@
     "bleForgetDevice",
     "bleBatteryLevel",
     "bleNearbyDevicesTitle",
-    "bleSyncSuccessWithBattery"
+    "bleSyncSuccessWithBattery",
+    "bleSyncFrom"
   ]
 }

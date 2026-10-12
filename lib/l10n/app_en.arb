@@ -2202,5 +2202,14 @@
         "type": "int"
       }
     }
+  },
+  "bleSyncFrom": "Sync from {device}",
+  "@bleSyncFrom": {
+    "description": "Button label to sync readings from a specific remembered meter",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
   }
 }

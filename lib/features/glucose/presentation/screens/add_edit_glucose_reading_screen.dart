@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/domain/enums/glucose_unit.dart';
 import '../../../../core/domain/enums/meal_context.dart';
 import '../../../../core/domain/utils/glucose_converter.dart';
@@ -14,12 +15,15 @@ import '../../../../core/presentation/widgets/clamped_layout.dart';
 import '../../../../core/presentation/widgets/form/delete_reading_dialog.dart';
 import '../../../../core/presentation/widgets/form/reading_date_time_picker.dart';
 import '../../../../core/presentation/widgets/form/reading_notes_field.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/user_profile_notifier.dart';
+import '../../domain/entities/ble_saved_device.dart';
 import '../../domain/entities/glucose_reading.dart';
 import '../extensions/glucose_status_ui_extension.dart';
 import '../providers/glucose_reading_detail_notifier.dart';
 import '../providers/glucose_reading_list_notifier.dart';
+import '../providers/saved_ble_device_notifier.dart';
 
 /// Screen allowing users to create a new glucose reading or update/delete an existing one.
 class AddEditGlucoseReadingScreen extends ConsumerStatefulWidget {
@@ -202,6 +206,8 @@ class _AddEditGlucoseReadingScreenState
     final preferredUnit =
         profileAsync.value?.preferredGlucoseUnit ?? GlucoseUnit.mgDl;
 
+    final savedDevice = ref.watch(savedBleDeviceProvider);
+
     if (isEditMode) {
       // Wait for the profile so unit conversion in _populateFromReading
       // never runs against a fallback unit.
@@ -224,7 +230,12 @@ class _AddEditGlucoseReadingScreenState
             );
           }
           _populateFromReading(reading, preferredUnit);
-          return _buildFormScaffold(context, l10n, preferredUnit);
+          return _buildFormScaffold(
+            context,
+            l10n,
+            preferredUnit,
+            savedDevice: savedDevice,
+          );
         },
         loading: () => Scaffold(
           appBar: AppBar(title: Text(l10n.editGlucoseReading)),
@@ -237,14 +248,20 @@ class _AddEditGlucoseReadingScreenState
       );
     }
 
-    return _buildFormScaffold(context, l10n, preferredUnit);
+    return _buildFormScaffold(
+      context,
+      l10n,
+      preferredUnit,
+      savedDevice: savedDevice,
+    );
   }
 
   Widget _buildFormScaffold(
     BuildContext context,
     AppLocalizations l10n,
-    GlucoseUnit preferredUnit,
-  ) {
+    GlucoseUnit preferredUnit, {
+    BleSavedDevice? savedDevice,
+  }) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -253,6 +270,12 @@ class _AddEditGlucoseReadingScreenState
           isEditMode ? l10n.editGlucoseReading : l10n.addGlucoseReading,
         ),
         actions: [
+          if (!isEditMode)
+            IconButton(
+              icon: const Icon(Icons.bluetooth),
+              tooltip: l10n.bleGlucoseSyncTitle,
+              onPressed: () => context.push(AppRoute.bleGlucoseSync.path),
+            ),
           if (isEditMode)
             IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -269,6 +292,14 @@ class _AddEditGlucoseReadingScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (!isEditMode && savedDevice != null) ...[
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.bluetooth_connected),
+                    label: Text(l10n.bleSyncFrom(savedDevice.name)),
+                    onPressed: () => context.push(AppRoute.bleGlucoseSync.path),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextFormField(
                   controller: _valueController,
                   keyboardType: const TextInputType.numberWithOptions(
