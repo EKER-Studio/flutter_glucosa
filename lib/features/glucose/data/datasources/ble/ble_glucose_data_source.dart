@@ -12,6 +12,18 @@ import 'gls_measurement_parser.dart';
 import 'racp_command_builder.dart';
 import 'racp_response_parser.dart';
 
+/// Result bundle containing downloaded records and optional device battery level.
+class GlsDownloadResult {
+  /// All parsed glucose records from the session.
+  final List<GlsRecord> records;
+
+  /// Battery level percentage (0-100) if supported and read, or `null`.
+  final int? batteryLevel;
+
+  /// Creates an immutable [GlsDownloadResult].
+  const GlsDownloadResult({required this.records, this.batteryLevel});
+}
+
 /// Contract for Bluetooth Low Energy operations with standard GLS glucometers.
 abstract interface class BleGlucoseDataSource {
   /// Scans for nearby BLE glucometers supporting Glucose Service (0x1808).
@@ -20,11 +32,11 @@ abstract interface class BleGlucoseDataSource {
   /// Stops an active BLE discovery scan.
   Future<void> stopScan();
 
-  /// Connects to [deviceId], queries stored records via RACP, and returns all parsed [GlsRecord]s.
+  /// Connects to [deviceId], queries stored records via RACP, and returns a [GlsDownloadResult].
   ///
   /// [sinceSequenceNumber] Optional sequence number threshold for incremental download.
   /// [timeout] Maximum duration before timing out connection and transfer.
-  Future<List<GlsRecord>> downloadRecords(
+  Future<GlsDownloadResult> downloadRecords(
     String deviceId, {
     int? sinceSequenceNumber,
     Duration timeout,
@@ -79,7 +91,7 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
   }
 
   @override
-  Future<List<GlsRecord>> downloadRecords(
+  Future<GlsDownloadResult> downloadRecords(
     String deviceId, {
     int? sinceSequenceNumber,
     Duration timeout = const Duration(seconds: 30),
@@ -105,6 +117,31 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
         orElse: () =>
             throw StateError('Glucose Service (0x1808) not found on device'),
       );
+
+      // Attempt to read battery level if Battery Service (0x180F) is present
+      int? batteryLevel;
+      final batteryServices = services.where(
+        (s) => s.uuid == BleGlucoseConstants.batteryServiceUuid,
+      );
+      if (batteryServices.isNotEmpty) {
+        final batteryChars = batteryServices.first.characteristics.where(
+          (c) => c.uuid == BleGlucoseConstants.batteryLevelCharacteristicUuid,
+        );
+        if (batteryChars.isNotEmpty) {
+          try {
+            final raw = await batteryChars.first.read();
+            if (raw.isNotEmpty) {
+              batteryLevel = raw.first;
+              AppLogger.info(
+                'Read glucometer battery level: $batteryLevel%',
+                tag: _tag,
+              );
+            }
+          } catch (e) {
+            AppLogger.debug('Could not read battery level: $e', tag: _tag);
+          }
+        }
+      }
 
       final measurementChar = glsService.characteristics.firstWhere(
         (c) =>
@@ -173,7 +210,7 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
         }
       });
 
-      // Issue RACP command
+      // Issue RACP command (incremental or full)
       final List<int> command = sinceSequenceNumber != null
           ? RacpCommandBuilder.reportStoredRecordsGreaterThanOrEqualTo(
               sinceSequenceNumber,
@@ -203,7 +240,10 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
         'Download complete. Total records received: ${enrichedRecords.length}',
         tag: _tag,
       );
-      return enrichedRecords;
+      return GlsDownloadResult(
+        records: enrichedRecords,
+        batteryLevel: batteryLevel,
+      );
     } finally {
       await measurementSub?.cancel();
       await contextSub?.cancel();

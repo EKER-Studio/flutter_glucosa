@@ -1,8 +1,8 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-/// Bluetooth GATT Service and Characteristic UUIDs for Glucose Profile (GLS).
+/// Bluetooth GATT Service and Characteristic UUIDs for Glucose Profile (GLS) and Battery Service.
 ///
-/// Follows Bluetooth SIG Glucose Service Specification v1.0.
+/// Follows Bluetooth SIG Glucose Service Specification v1.0 and Battery Service v1.0.
 abstract final class BleGlucoseConstants {
   /// Standard 16-bit Glucose Service UUID (0x1808).
   static final Guid glsServiceUuid = Guid('1808');
@@ -26,4 +26,12 @@ abstract final class BleGlucoseConstants {
   ///
   /// Supports WRITE and INDICATE.
   static final Guid racpCharacteristicUuid = Guid('2A52');
+
+  /// Standard 16-bit Battery Service UUID (0x180F).
+  static final Guid batteryServiceUuid = Guid('180F');
+
+  /// Standard 16-bit Battery Level Characteristic UUID (0x2A19).
+  ///
+  /// Supports READ.
+  static final Guid batteryLevelCharacteristicUuid = Guid('2A19');
 }
