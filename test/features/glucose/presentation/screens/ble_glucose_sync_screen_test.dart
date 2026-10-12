@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_glucosa/core/presentation/theme/app_theme.dart';
 import 'package:flutter_glucosa/features/glucose/data/providers/ble_glucose_sync_providers.dart';
 import 'package:flutter_glucosa/features/glucose/domain/entities/ble_device_info.dart';
+import 'package:flutter_glucosa/features/glucose/domain/entities/ble_saved_device.dart';
+import 'package:flutter_glucosa/features/glucose/domain/entities/ble_sync_result.dart';
 import 'package:flutter_glucosa/features/glucose/domain/repositories/ble_glucose_sync_repository.dart';
 import 'package:flutter_glucosa/features/glucose/presentation/providers/ble_glucose_scan_notifier.dart';
 import 'package:flutter_glucosa/features/glucose/presentation/screens/ble_glucose_sync_screen.dart';
@@ -23,6 +25,8 @@ void main() {
   setUp(() {
     mockRepository = MockBleGlucoseSyncRepository();
     when(() => mockRepository.stopScan()).thenAnswer((_) async {});
+    when(() => mockRepository.getSavedDevice()).thenReturn(null);
+    when(() => mockRepository.forgetSavedDevice()).thenAnswer((_) async {});
     when(
       () => mockRepository.scanDevices(timeout: any(named: 'timeout')),
     ).thenAnswer((_) => const Stream.empty());
@@ -70,6 +74,25 @@ void main() {
     expect(find.byIcon(Icons.bluetooth_searching), findsOneWidget);
   });
 
+  testWidgets('displays remembered glucometer card with battery badge', (
+    tester,
+  ) async {
+    const saved = BleSavedDevice(
+      id: 'saved-mac-456',
+      name: 'Contour Plus ONE',
+      batteryLevel: 88,
+    );
+    when(() => mockRepository.getSavedDevice()).thenReturn(saved);
+
+    await tester.pumpWidget(createWidget());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Remembered Glucometer'), findsOneWidget);
+    expect(find.text('Contour Plus ONE'), findsOneWidget);
+    expect(find.text('88%'), findsOneWidget);
+    expect(find.text('Sync Now'), findsOneWidget);
+  });
+
   testWidgets('displays device card and triggers sync when tapped', (
     tester,
   ) async {
@@ -80,8 +103,14 @@ void main() {
     );
 
     when(
-      () => mockRepository.syncFromDevice('mock-mac-123'),
-    ).thenAnswer((_) async => (3, null));
+      () => mockRepository.syncFromDevice(
+        'mock-mac-123',
+        deviceName: any(named: 'deviceName'),
+      ),
+    ).thenAnswer(
+      (_) async =>
+          (const BleSyncResult(importedCount: 3, batteryLevel: 95), null),
+    );
 
     await tester.pumpWidget(
       createWidget(
@@ -95,7 +124,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Accu-Chek Instant'), findsOneWidget);
-    expect(find.text('RSSI: -58 dBm'), findsOneWidget);
 
     final syncButton = find.widgetWithText(FilledButton, 'Sync');
     expect(syncButton, findsOneWidget);
@@ -103,9 +131,14 @@ void main() {
     await tester.tap(syncButton);
     await tester.pumpAndSettle();
 
-    verify(() => mockRepository.syncFromDevice('mock-mac-123')).called(1);
+    verify(
+      () => mockRepository.syncFromDevice(
+        'mock-mac-123',
+        deviceName: any(named: 'deviceName'),
+      ),
+    ).called(1);
     expect(
-      find.text('Imported 3 new readings from Accu-Chek Instant.'),
+      find.text('Imported 3 readings from Accu-Chek Instant (Battery: 95%).'),
       findsOneWidget,
     );
   });

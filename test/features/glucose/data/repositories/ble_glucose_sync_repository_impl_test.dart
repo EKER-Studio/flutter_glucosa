@@ -1,14 +1,17 @@
 import 'package:flutter_glucosa/core/domain/enums/meal_context.dart';
 import 'package:flutter_glucosa/core/errors/failure.dart';
 import 'package:flutter_glucosa/features/glucose/data/datasources/ble/ble_glucose_data_source.dart';
+import 'package:flutter_glucosa/features/glucose/data/datasources/ble/ble_glucose_settings.dart';
 import 'package:flutter_glucosa/features/glucose/data/mappers/gls_record_mapper.dart';
 import 'package:flutter_glucosa/features/glucose/data/repositories/ble_glucose_sync_repository_impl.dart';
 import 'package:flutter_glucosa/features/glucose/domain/entities/ble_device_info.dart';
+import 'package:flutter_glucosa/features/glucose/domain/entities/ble_saved_device.dart';
 import 'package:flutter_glucosa/features/glucose/domain/entities/gls_record.dart';
 import 'package:flutter_glucosa/features/glucose/domain/entities/glucose_reading.dart';
 import 'package:flutter_glucosa/features/glucose/domain/repositories/glucose_reading_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockBleGlucoseDataSource extends Mock implements BleGlucoseDataSource {}
 
@@ -32,7 +35,10 @@ void main() {
     registerFallbackValue(const Duration(seconds: 1));
   });
 
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await BleGlucoseSettings.load();
+
     mockDataSource = MockBleGlucoseDataSource();
     mockReadingRepository = MockGlucoseReadingRepository();
     repository = BleGlucoseSyncRepositoryImpl(
@@ -61,17 +67,23 @@ void main() {
       'syncFromDevice returns 0 when dataSource returns no records',
       () async {
         when(
-          () => mockDataSource.downloadRecords('dev1'),
-        ).thenAnswer((_) async => []);
+          () => mockDataSource.downloadRecords(
+            'dev1',
+            sinceSequenceNumber: any(named: 'sinceSequenceNumber'),
+          ),
+        ).thenAnswer(
+          (_) async => const GlsDownloadResult(records: [], batteryLevel: 90),
+        );
 
         final result = await repository.syncFromDevice('dev1');
-        expect(result.$1, equals(0));
+        expect(result.$1?.importedCount, equals(0));
+        expect(result.$1?.batteryLevel, equals(90));
         expect(result.$2, isNull);
         verifyNever(() => mockReadingRepository.addAll(any()));
       },
     );
 
-    test('syncFromDevice imports new records and skips duplicates', () async {
+    test('syncFromDevice imports new records and remembers device', () async {
       final now = DateTime(2026, 1, 1, 12, 0, 0);
       final record1 = GlsRecord(
         sequenceNumber: 1,
@@ -88,8 +100,14 @@ void main() {
       );
 
       when(
-        () => mockDataSource.downloadRecords('dev1'),
-      ).thenAnswer((_) async => [record1, record2]);
+        () => mockDataSource.downloadRecords(
+          'dev1',
+          sinceSequenceNumber: any(named: 'sinceSequenceNumber'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            GlsDownloadResult(records: [record1, record2], batteryLevel: 85),
+      );
 
       // Simulate record1 is already in DB, record2 is new
       final existingReading = GlucoseReading(
@@ -111,26 +129,68 @@ void main() {
         return (list.length, null);
       });
 
-      final result = await repository.syncFromDevice('dev1');
-      expect(result.$1, equals(1)); // Only record2 imported
+      final result = await repository.syncFromDevice(
+        'dev1',
+        deviceName: 'Accu-Chek Guide',
+      );
+      expect(result.$1?.importedCount, equals(1)); // Only record2 imported
+      expect(result.$1?.batteryLevel, equals(85));
       expect(result.$2, isNull);
 
-      verify(
-        () => mockReadingRepository.addAll(
-          any(
-            that: predicate<List<GlucoseReading>>(
-              (list) => list.length == 1 && list.first.readingMgDl == 120,
-            ),
+      final saved = repository.getSavedDevice();
+      expect(saved, isNotNull);
+      expect(saved!.id, equals('dev1'));
+      expect(saved.name, equals('Accu-Chek Guide'));
+      expect(saved.batteryLevel, equals(85));
+      expect(saved.lastSequenceNumber, equals(2));
+    });
+
+    test(
+      'syncFromDevice uses incremental sequence number for remembered device',
+      () async {
+        // Pre-save device with last sequence number 5
+        await BleGlucoseSettings.saveDevice(
+          const BleSavedDevice(
+            id: 'dev1',
+            name: 'Contour Plus',
+            lastSequenceNumber: 5,
           ),
-        ),
-      ).called(1);
+        );
+
+        when(
+          () => mockDataSource.downloadRecords('dev1', sinceSequenceNumber: 6),
+        ).thenAnswer(
+          (_) async => const GlsDownloadResult(records: [], batteryLevel: 75),
+        );
+
+        final result = await repository.syncFromDevice('dev1');
+        expect(result.$1?.importedCount, equals(0));
+        expect(result.$1?.batteryLevel, equals(75));
+
+        verify(
+          () => mockDataSource.downloadRecords('dev1', sinceSequenceNumber: 6),
+        ).called(1);
+      },
+    );
+
+    test('forgetSavedDevice clears stored glucometer', () async {
+      await BleGlucoseSettings.saveDevice(
+        const BleSavedDevice(id: 'dev1', name: 'Contour Plus'),
+      );
+      expect(repository.getSavedDevice(), isNotNull);
+
+      await repository.forgetSavedDevice();
+      expect(repository.getSavedDevice(), isNull);
     });
 
     test(
       'syncFromDevice returns BluetoothFailure when exception is thrown',
       () async {
         when(
-          () => mockDataSource.downloadRecords('dev1'),
+          () => mockDataSource.downloadRecords(
+            'dev1',
+            sinceSequenceNumber: any(named: 'sinceSequenceNumber'),
+          ),
         ).thenThrow(Exception('Connection lost'));
 
         final result = await repository.syncFromDevice('dev1');

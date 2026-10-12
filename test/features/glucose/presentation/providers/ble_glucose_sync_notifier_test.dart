@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_glucosa/core/errors/failure.dart';
 import 'package:flutter_glucosa/features/glucose/data/providers/ble_glucose_sync_providers.dart';
 import 'package:flutter_glucosa/features/glucose/domain/entities/ble_device_info.dart';
+import 'package:flutter_glucosa/features/glucose/domain/entities/ble_sync_result.dart';
 import 'package:flutter_glucosa/features/glucose/domain/repositories/ble_glucose_sync_repository.dart';
 import 'package:flutter_glucosa/features/glucose/presentation/providers/ble_glucose_scan_notifier.dart';
 import 'package:flutter_glucosa/features/glucose/presentation/providers/ble_glucose_sync_notifier.dart';
@@ -24,6 +25,8 @@ void main() {
   setUp(() {
     mockRepository = MockBleGlucoseSyncRepository();
     when(() => mockRepository.stopScan()).thenAnswer((_) async {});
+    when(() => mockRepository.getSavedDevice()).thenReturn(null);
+    when(() => mockRepository.forgetSavedDevice()).thenAnswer((_) async {});
     container = ProviderContainer(
       overrides: [
         bleGlucoseSyncRepositoryProvider.overrideWithValue(mockRepository),
@@ -80,29 +83,51 @@ void main() {
       expect(state, isA<BleSyncInitial>());
     });
 
-    test('syncDevice transitions to Success on valid sync pass', () async {
-      const device = BleDeviceInfo(id: 'dev1', name: 'Contour Plus', rssi: -65);
-      when(
-        () => mockRepository.syncFromDevice('dev1'),
-      ).thenAnswer((_) async => (5, null));
+    test(
+      'syncDevice transitions to Success with battery level on valid sync pass',
+      () async {
+        const device = BleDeviceInfo(
+          id: 'dev1',
+          name: 'Contour Plus',
+          rssi: -65,
+        );
+        when(
+          () => mockRepository.syncFromDevice(
+            'dev1',
+            deviceName: any(named: 'deviceName'),
+          ),
+        ).thenAnswer(
+          (_) async =>
+              (const BleSyncResult(importedCount: 5, batteryLevel: 80), null),
+        );
 
-      final notifier = container.read(bleGlucoseSyncProvider.notifier);
-      final future = notifier.syncDevice(device);
+        final notifier = container.read(bleGlucoseSyncProvider.notifier);
+        final future = notifier.syncDevice(device);
 
-      expect(container.read(bleGlucoseSyncProvider), isA<BleSyncInProgress>());
+        expect(
+          container.read(bleGlucoseSyncProvider),
+          isA<BleSyncInProgress>(),
+        );
 
-      await future;
+        await future;
 
-      final state = container.read(bleGlucoseSyncProvider);
-      expect(state, isA<BleSyncSuccess>());
-      final success = state as BleSyncSuccess;
-      expect(success.importedCount, equals(5));
-      expect(success.deviceName, equals('Contour Plus'));
-    });
+        final state = container.read(bleGlucoseSyncProvider);
+        expect(state, isA<BleSyncSuccess>());
+        final success = state as BleSyncSuccess;
+        expect(success.importedCount, equals(5));
+        expect(success.deviceName, equals('Contour Plus'));
+        expect(success.batteryLevel, equals(80));
+      },
+    );
 
     test('syncDevice transitions to Failure when repository fails', () async {
       const device = BleDeviceInfo(id: 'dev1', name: 'Contour Plus', rssi: -65);
-      when(() => mockRepository.syncFromDevice('dev1')).thenAnswer(
+      when(
+        () => mockRepository.syncFromDevice(
+          'dev1',
+          deviceName: any(named: 'deviceName'),
+        ),
+      ).thenAnswer(
         (_) async => (null, const BluetoothFailure('Device disconnected')),
       );
 
