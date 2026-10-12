@@ -1,3 +1,5 @@
+import 'gls_measurement_context.dart';
+
 /// Domain entity representing a glucose measurement record received from a BLE glucometer.
 class GlsRecord {
   /// Sequential identifier assigned by the glucometer.
@@ -24,6 +26,9 @@ class GlsRecord {
   /// Whether an associated Glucose Measurement Context packet will follow.
   final bool contextInformationFollows;
 
+  /// Optional contextual data (meal markers, carbs, medication) associated with this record.
+  final GlsMeasurementContext? context;
+
   /// Creates an immutable [GlsRecord].
   const GlsRecord({
     required this.sequenceNumber,
@@ -34,6 +39,7 @@ class GlsRecord {
     this.sampleLocation,
     this.sensorStatus,
     this.contextInformationFollows = false,
+    this.context,
   });
 
   /// Converts the concentration to whole integer mg/dL.
@@ -51,6 +57,32 @@ class GlsRecord {
     return (val * 100000.0).round();
   }
 
+  /// Returns a copy of this record with the given fields replaced by new values.
+  GlsRecord copyWith({
+    int? sequenceNumber,
+    DateTime? timestamp,
+    double? concentration,
+    bool? isMolPerLiter,
+    String? sampleType,
+    String? sampleLocation,
+    int? sensorStatus,
+    bool? contextInformationFollows,
+    GlsMeasurementContext? context,
+  }) {
+    return GlsRecord(
+      sequenceNumber: sequenceNumber ?? this.sequenceNumber,
+      timestamp: timestamp ?? this.timestamp,
+      concentration: concentration ?? this.concentration,
+      isMolPerLiter: isMolPerLiter ?? this.isMolPerLiter,
+      sampleType: sampleType ?? this.sampleType,
+      sampleLocation: sampleLocation ?? this.sampleLocation,
+      sensorStatus: sensorStatus ?? this.sensorStatus,
+      contextInformationFollows:
+          contextInformationFollows ?? this.contextInformationFollows,
+      context: context ?? this.context,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -63,7 +95,8 @@ class GlsRecord {
           sampleType == other.sampleType &&
           sampleLocation == other.sampleLocation &&
           sensorStatus == other.sensorStatus &&
-          contextInformationFollows == other.contextInformationFollows;
+          contextInformationFollows == other.contextInformationFollows &&
+          context == other.context;
 
   @override
   int get hashCode => Object.hash(
@@ -75,5 +108,6 @@ class GlsRecord {
     sampleLocation,
     sensorStatus,
     contextInformationFollows,
+    context,
   );
 }
