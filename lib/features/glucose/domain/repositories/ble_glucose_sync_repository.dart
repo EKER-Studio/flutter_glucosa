@@ -1,5 +1,7 @@
 import '../../../../core/errors/result.dart';
 import '../entities/ble_device_info.dart';
+import '../entities/ble_saved_device.dart';
+import '../entities/ble_sync_result.dart';
 
 /// Contract managing Bluetooth discovery and synchronization of blood glucose readings.
 abstract interface class BleGlucoseSyncRepository {
@@ -11,6 +13,16 @@ abstract interface class BleGlucoseSyncRepository {
 
   /// Synchronizes blood glucose measurements from the specified [deviceId].
   ///
-  /// Returns the count of newly inserted readings, or a [Failure] if an error occurred.
-  Future<DataResult<int>> syncFromDevice(String deviceId);
+  /// [deviceName] Optional user-facing label or advertised name to persist.
+  /// Returns the [BleSyncResult], or a [Failure] if an error occurred.
+  Future<DataResult<BleSyncResult>> syncFromDevice(
+    String deviceId, {
+    String? deviceName,
+  });
+
+  /// Retrieves the currently remembered glucometer, or `null` if none.
+  BleSavedDevice? getSavedDevice();
+
+  /// Clears the remembered glucometer from persistent storage.
+  Future<void> forgetSavedDevice();
 }
