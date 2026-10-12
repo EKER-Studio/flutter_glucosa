@@ -2162,5 +2162,45 @@
   "bleSupportedDevicesHint": "Supports standard Bluetooth SIG Glucose Profile (GLS 0x1808) glucometers including Accu-Chek, Contour Plus, and others.",
   "@bleSupportedDevicesHint": {
     "description": "Info card description of supported meters"
+  },
+  "bleSavedDeviceTitle": "Remembered Glucometer",
+  "@bleSavedDeviceTitle": {
+    "description": "Header for remembered glucometer section"
+  },
+  "bleSyncNow": "Sync Now",
+  "@bleSyncNow": {
+    "description": "Button to trigger immediate sync with remembered meter"
+  },
+  "bleForgetDevice": "Forget",
+  "@bleForgetDevice": {
+    "description": "Button to unpair or forget remembered glucometer"
+  },
+  "bleBatteryLevel": "Battery: {level}%",
+  "@bleBatteryLevel": {
+    "description": "Label displaying battery percentage",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "bleNearbyDevicesTitle": "Nearby Devices",
+  "@bleNearbyDevicesTitle": {
+    "description": "Header for discovered devices section"
+  },
+  "bleSyncSuccessWithBattery": "Imported {count} readings from {device} (Battery: {battery}%).",
+  "@bleSyncSuccessWithBattery": {
+    "description": "Notification when sync succeeds with battery percentage reported",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "device": {
+        "type": "String"
+      },
+      "battery": {
+        "type": "int"
+      }
+    }
   }
 }

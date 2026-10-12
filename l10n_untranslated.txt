@@ -43,7 +43,13 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ],
 
   "es": [
@@ -90,7 +96,13 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ],
 
   "fr": [
@@ -137,7 +149,13 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ],
 
   "it": [
@@ -184,7 +202,13 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ],
 
   "ja": [
@@ -231,7 +255,13 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ],
 
   "ko": [
@@ -278,7 +308,13 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ],
 
   "nl": [
@@ -325,7 +361,13 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ],
 
   "pl": [
@@ -408,6 +450,12 @@
     "bleSyncingWith",
     "bleSyncSuccess",
     "bleSyncNoNewReadings",
-    "bleSupportedDevicesHint"
+    "bleSupportedDevicesHint",
+    "bleSavedDeviceTitle",
+    "bleSyncNow",
+    "bleForgetDevice",
+    "bleBatteryLevel",
+    "bleNearbyDevicesTitle",
+    "bleSyncSuccessWithBattery"
   ]
 }
