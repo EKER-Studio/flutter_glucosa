@@ -2105,5 +2105,62 @@
   "selectedState": "selected",
   "@selectedState": {
     "description": "Suffix for the selected option in accessibility labels"
+  },
+  "bleGlucoseSyncTitle": "Bluetooth Glucometer",
+  "@bleGlucoseSyncTitle": {
+    "description": "Title of the Bluetooth glucometer synchronization screen"
+  },
+  "bleGlucoseSyncSubtitle": "Sync readings from compatible meters",
+  "@bleGlucoseSyncSubtitle": {
+    "description": "Subtitle in tools section for Bluetooth sync"
+  },
+  "bleScanButton": "Scan for meters",
+  "@bleScanButton": {
+    "description": "Button to start BLE scanning"
+  },
+  "bleStopScanButton": "Stop scan",
+  "@bleStopScanButton": {
+    "description": "Button to stop BLE scanning"
+  },
+  "bleNoDevicesFound": "No glucometers found",
+  "@bleNoDevicesFound": {
+    "description": "Title when no BLE devices were discovered"
+  },
+  "bleNoDevicesHint": "Make sure your glucometer has Bluetooth enabled, is awake, and is close to your phone.",
+  "@bleNoDevicesHint": {
+    "description": "Helpful hint when no devices are discovered"
+  },
+  "bleSyncButton": "Sync",
+  "@bleSyncButton": {
+    "description": "Button to trigger sync from a discovered meter"
+  },
+  "bleSyncingWith": "Syncing with {device}...",
+  "@bleSyncingWith": {
+    "description": "Status text while syncing",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "bleSyncSuccess": "Imported {count} new readings from {device}.",
+  "@bleSyncSuccess": {
+    "description": "Notification when sync succeeds",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "bleSyncNoNewReadings": "All readings are already synchronized.",
+  "@bleSyncNoNewReadings": {
+    "description": "Message when no new readings were needed"
+  },
+  "bleSupportedDevicesHint": "Supports standard Bluetooth SIG Glucose Profile (GLS 0x1808) glucometers including Accu-Chek, Contour Plus, and others.",
+  "@bleSupportedDevicesHint": {
+    "description": "Info card description of supported meters"
   }
 }

@@ -1878,5 +1878,62 @@
         "type": "int"
       }
     }
+  },
+  "bleGlucoseSyncTitle": "Glukometr Bluetooth",
+  "@bleGlucoseSyncTitle": {
+    "description": "Title of the Bluetooth glucometer synchronization screen"
+  },
+  "bleGlucoseSyncSubtitle": "Pobieraj pomiary z kompatybilnych urządzeń",
+  "@bleGlucoseSyncSubtitle": {
+    "description": "Subtitle in tools section for Bluetooth sync"
+  },
+  "bleScanButton": "Szukaj glukometrów",
+  "@bleScanButton": {
+    "description": "Button to start BLE scanning"
+  },
+  "bleStopScanButton": "Zatrzymaj szukanie",
+  "@bleStopScanButton": {
+    "description": "Button to stop BLE scanning"
+  },
+  "bleNoDevicesFound": "Nie znaleziono glukometrów",
+  "@bleNoDevicesFound": {
+    "description": "Title when no BLE devices were discovered"
+  },
+  "bleNoDevicesHint": "Upewnij się, że glukometr ma włączony Bluetooth, jest wybudzony i znajduje się blisko telefonu.",
+  "@bleNoDevicesHint": {
+    "description": "Helpful hint when no devices are discovered"
+  },
+  "bleSyncButton": "Pobierz",
+  "@bleSyncButton": {
+    "description": "Button to trigger sync from a discovered meter"
+  },
+  "bleSyncingWith": "Pobieranie pomiarów z {device}...",
+  "@bleSyncingWith": {
+    "description": "Status text while syncing",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "bleSyncSuccess": "Zaimportowano {count} nowych pomiarów z {device}.",
+  "@bleSyncSuccess": {
+    "description": "Notification when sync succeeds",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "bleSyncNoNewReadings": "Wszystkie pomiary są już zsynchronizowane.",
+  "@bleSyncNoNewReadings": {
+    "description": "Message when no new readings were needed"
+  },
+  "bleSupportedDevicesHint": "Obsługuje standardowe glukometry zgodne z Bluetooth SIG Glucose Profile (GLS 0x1808), m.in. Accu-Chek, Contour Plus i inne.",
+  "@bleSupportedDevicesHint": {
+    "description": "Info card description of supported meters"
   }
 }

@@ -36,6 +36,12 @@ class ToolsSection extends StatelessWidget {
           subtitle: l10n.hba1cCalculatorSubtitle,
           onTap: () => context.push(AppRoute.hba1cCalculator.path),
         ),
+        CustomSettingsTile(
+          icon: Icons.bluetooth_searching,
+          title: l10n.bleGlucoseSyncTitle,
+          subtitle: l10n.bleGlucoseSyncSubtitle,
+          onTap: () => context.push(AppRoute.bleGlucoseSync.path),
+        ),
       ],
     );
   }

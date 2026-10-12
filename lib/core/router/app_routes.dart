@@ -24,6 +24,9 @@ enum AppRoute {
   /// Route to edit an existing blood glucose reading with path parameter id.
   editGlucose('/glucose/edit/:id', 'edit_glucose'),
 
+  /// Route to synchronize readings with a Bluetooth LE glucometer.
+  bleGlucoseSync('/glucose/sync', 'ble_glucose_sync'),
+
   /// Route to add a new HbA1c reading.
   addHba1c('/hba1c/add', 'add_hba1c'),
 

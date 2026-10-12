@@ -32,7 +32,18 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ],
 
   "es": [
@@ -68,7 +79,18 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ],
 
   "fr": [
@@ -104,7 +126,18 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ],
 
   "it": [
@@ -140,7 +173,18 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ],
 
   "ja": [
@@ -176,7 +220,18 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ],
 
   "ko": [
@@ -212,7 +267,18 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ],
 
   "nl": [
@@ -248,7 +314,18 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ],
 
   "pl": [
@@ -320,6 +397,17 @@
     "nameCannotBeEmpty",
     "privacyPolicyEmailSubject",
     "versusLabel",
-    "selectedState"
+    "selectedState",
+    "bleGlucoseSyncTitle",
+    "bleGlucoseSyncSubtitle",
+    "bleScanButton",
+    "bleStopScanButton",
+    "bleNoDevicesFound",
+    "bleNoDevicesHint",
+    "bleSyncButton",
+    "bleSyncingWith",
+    "bleSyncSuccess",
+    "bleSyncNoNewReadings",
+    "bleSupportedDevicesHint"
   ]
 }

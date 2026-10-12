@@ -8,6 +8,7 @@ import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/cholesterol/presentation/screens/add_edit_cholesterol_reading_screen.dart';
 import '../../features/export/presentation/screens/export_screen.dart';
 import '../../features/glucose/presentation/screens/add_edit_glucose_reading_screen.dart';
+import '../../features/glucose/presentation/screens/ble_glucose_sync_screen.dart';
 import '../../features/hba1c/presentation/screens/add_edit_hba1c_reading_screen.dart';
 import '../../features/hba1c/presentation/screens/hba1c_calculator_screen.dart';
 import '../../features/ketones/presentation/screens/add_edit_ketone_reading_screen.dart';
@@ -165,6 +166,12 @@ GoRouter appRouter(Ref ref) {
           final id = int.tryParse(idString ?? '');
           return AddEditGlucoseReadingScreen(readingId: id);
         },
+      ),
+      GoRoute(
+        path: AppRoute.bleGlucoseSync.path,
+        name: AppRoute.bleGlucoseSync.name,
+        builder: (BuildContext context, GoRouterState state) =>
+            const BleGlucoseSyncScreen(),
       ),
       GoRoute(
         path: AppRoute.addHba1c.path,
