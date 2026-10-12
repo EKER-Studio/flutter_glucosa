@@ -55,6 +55,10 @@
 		<string>Glucosa needs read access to your blood glucose, blood pressure, and weight to synchronize your measurements.</string>
 		<key>NSHealthUpdateUsageDescription</key>
 		<string>Glucosa needs write access to share new blood glucose, blood pressure, and weight measurements with Apple Health.</string>
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>Glucosa uses Bluetooth to connect with compatible blood glucose monitors and synchronize your measurements.</string>
+		<key>NSBluetoothPeripheralUsageDescription</key>
+		<string>Glucosa uses Bluetooth to connect with compatible blood glucose monitors.</string>
 		<key>UILaunchStoryboardName</key>
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
