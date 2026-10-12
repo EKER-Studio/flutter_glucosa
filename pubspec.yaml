@@ -2,7 +2,7 @@ name: flutter_glucosa
 description: "A local-first metabolic health and blood glucose monitoring application for people with diabetes."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.12.2

@@ -1,7 +1,7 @@
 # 🩸 Glucosa — Modern Diabetes & Metabolic Health Platform
 
 [![CI](https://github.com/piotrekert90/flutter_glucosa/actions/workflows/ci.yml/badge.svg)](https://github.com/piotrekert90/flutter_glucosa/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)](CHANGELOG.md)
 [![Flutter](https://img.shields.io/badge/Flutter-3.47+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.12+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![State](https://img.shields.io/badge/State-Riverpod_3.x-0553B1)](https://riverpod.dev)
@@ -11,7 +11,7 @@
 
 > **Local-first metabolic health tracking built with Flutter, Riverpod, and on-device storage.**
 
-**Glucosa** is an offline-first diabetes and metabolic health tracking application built with **Flutter**, **Riverpod 3.x**, **Isar Community**, and **Material 3**. Designed for individuals managing diabetes (Type 1, Type 2, Gestational, LADA), Glucosa provides multi-metric tracking, trend analysis, clinical calculators, recurring reminders, calendar overview, device health integrations, and CSV data export/import.
+**Glucosa** is an offline-first diabetes and metabolic health tracking application built with **Flutter**, **Riverpod 3.x**, **Isar Community**, and **Material 3**. Designed for individuals managing diabetes (Type 1, Type 2, Gestational, LADA), Glucosa provides multi-metric tracking, trend analysis, clinical calculators, recurring reminders, calendar overview, device health integrations, Bluetooth glucometer sync, and CSV data export/import.
 
 ## 📸 Screenshots
 
@@ -64,6 +64,7 @@ The technical design focuses on clinical reliability and data privacy:
 - **Habits & Milestones**: Habit tracking, logging streaks, milestone badges, and clinical visit summaries.
 
 ### 🛠 Tools & Platform Integrations
+- **Bluetooth Glucometer Sync**: Wireless synchronization with Bluetooth Low Energy glucose meters adhering to the Bluetooth SIG Glucose Service (GLS 0x1808) standard (Accu-Chek Instant/Guide, Contour Next/Plus ONE, Beurer GL49/GL50, Rossmax). Features Record Access Control Point (RACP 0x2A52), Measurement Context (0x2A34) parsing (carbohydrates, meal markers, insulin dosages), incremental synchronization, ±60s deduplication, battery monitoring (0x180F), and 1-tap quick sync directly from manual entry forms.
 - **HbA1c Calculator**: Standalone utility screen offering bidirectional estimation between average glucose and HbA1c with direct reading persistence.
 - **Scheduled Reminders**: Local notification reminders for medication, blood glucose checks, and lifestyle logging with customizable recurring schedules. On Android, reminders use inexact scheduling by default (an exact alarm is used only when the system permits it), so delivery can slip by a few minutes under battery optimization.
 - **Health Platform Sync**: Native integration with **Apple HealthKit** (iOS) and **Google Health Connect** (Android) for syncing blood glucose, blood pressure, ketones, and weight.
@@ -103,7 +104,7 @@ lib/
     ├── calendar/                # Monthly & daily calendar view of readings
     ├── cholesterol/             # Lipid panel tracking
     ├── export/                  # CSV compilation & native share service
-    ├── glucose/                 # Glucose domain, statistics & entry forms
+    ├── glucose/                 # Glucose domain, statistics, entry forms & BLE glucometer sync (GLS 0x1808)
     ├── hba1c/                   # HbA1c readings & clinical calculator
     ├── history/                 # Merged chronological timeline & filtering
     ├── ketones/                 # Blood ketone tracking
@@ -120,11 +121,12 @@ lib/
 - **Database**: [Isar Community](https://isar-community.dev) fast NoSQL database with reactive watch queries.
 - **Routing**: [GoRouter](https://pub.dev/packages/go_router) declarative navigation.
 - **Charts**: [fl_chart](https://pub.dev/packages/fl_chart) smooth, reactive line charts.
+- **Bluetooth Low Energy**: [flutter_blue_plus](https://pub.dev/packages/flutter_blue_plus) for standard Bluetooth SIG Glucose Profile (GLS 0x1808) & Battery Service (0x180F) communication.
 - **Health Platform**: [health](https://pub.dev/packages/health) for Apple HealthKit & Health Connect integration.
 - **Home Widgets**: [home_widget](https://pub.dev/packages/home_widget) for Android AppWidget support.
 - **Biometrics**: [local_auth](https://pub.dev/packages/local_auth) for biometric authentication and app lock.
 - **Localization**: Native Flutter `intl` & `l10n` supporting 10 languages: English (`en`), German (`de`), Spanish (`es`), French (`fr`), Italian (`it`), Japanese (`ja`), Korean (`ko`), Dutch (`nl`), Polish (`pl`), and Portuguese (`pt`).
-- **Testing**: Comprehensive test suite (840+ tests) covering domain logic, state transitions, repository contracts, and presentation widgets.
+- **Testing**: Comprehensive test suite (940+ tests) covering domain logic, state transitions, repository contracts, and presentation widgets.
 
 ---
 

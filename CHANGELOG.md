@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-12
+
+### Release v1.1.0 — Bluetooth LE Glucometer Sync & Measurement Context
+
+Adds full support for wireless Bluetooth Low Energy (BLE) blood glucose meter synchronization adhering to the official Bluetooth SIG Glucose Service (GLS) specification.
+
+#### 🚀 Features
+
+* **Bluetooth Low Energy (GLS 0x1808) Glucometer Synchronization:**
+  * **Standard GLS Protocol:** Wireless sync compatible with all major standard-compliant meters (Accu-Chek Instant/Guide, Contour Next/Plus ONE, Beurer GL49/GL50 evo, Rossmax, and generic GLS devices) via `flutter_blue_plus`.
+  * **Record Access Control Point (RACP 0x2A52):** Reliable multi-record retrieval with opcode commands, sequence numbers, and graceful timeout handling.
+  * **Measurement Context (0x2A34):** Ingestion of carbohydrate tags, meal markers, and rapid/short-acting insulin dosages automatically mapped to Glucosa's clinical `MealContext` and detailed reading notes.
+  * **Incremental Synchronization:** Automatic sequence tracking (`lastSequenceNumber + 1`) to fetch only new measurements since the last sync, speeding up transfers.
+  * **Intelligent Deduplication:** Time-window ($\pm 60\,\text{s}$) and value matching prevents duplicate entries when re-syncing meter memory.
+  * **Battery Service (0x180F):** Real-time glucometer battery level monitoring (0x2A19) with dedicated badge and status indicators.
+  * **Remembered Meter Persistence:** Automatic device memory with 1-tap quick sync card in Tools and contextual quick-sync button directly in the Add Reading form (`AddEditGlucoseReadingScreen`).
+  * **Localization:** Full English and Polish strings for discovery, status notifications, battery levels, and sync shortcuts.
+
 ## [1.0.0] - 2026-10-03
 
 ### Release v1.0.0 — Initial Production Release
