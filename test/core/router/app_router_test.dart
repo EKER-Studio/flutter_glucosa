@@ -6,6 +6,7 @@ import 'package:flutter_glucosa/features/export/presentation/screens/export_scre
 import 'package:flutter_glucosa/features/calendar/presentation/screens/calendar_screen.dart';
 import 'package:flutter_glucosa/features/glucose/data/providers/glucose_reading_repository_provider.dart';
 import 'package:flutter_glucosa/features/glucose/presentation/screens/add_edit_glucose_reading_screen.dart';
+import 'package:flutter_glucosa/features/glucose/presentation/screens/ble_glucose_sync_screen.dart';
 import 'package:flutter_glucosa/features/hba1c/data/providers/hba1c_reading_repository_provider.dart';
 import 'package:flutter_glucosa/features/hba1c/presentation/screens/hba1c_calculator_screen.dart';
 import 'package:flutter_glucosa/features/history/presentation/screens/history_screen.dart';
@@ -21,6 +22,8 @@ import 'package:flutter_glucosa/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:flutter_glucosa/features/glucose/data/providers/ble_glucose_sync_providers.dart';
+import '../../helpers/fake_ble_glucose_sync_repository.dart';
 import '../../helpers/fake_export_service.dart';
 import '../../helpers/fake_glucose_reading_repository.dart';
 import '../../helpers/fake_hba1c_reading_repository.dart';
@@ -33,6 +36,7 @@ void main() {
   late FakeHbA1cReadingRepository fakeHbA1cReadingRepository;
   late FakeReminderRepository fakeReminderRepository;
   late FakeExportService fakeExportService;
+  late FakeBleGlucoseSyncRepository fakeBleGlucoseSyncRepository;
 
   setUp(() {
     // Seed a completed profile so the onboarding guard lets tests through
@@ -46,6 +50,7 @@ void main() {
     fakeHbA1cReadingRepository = FakeHbA1cReadingRepository();
     fakeReminderRepository = FakeReminderRepository();
     fakeExportService = FakeExportService();
+    fakeBleGlucoseSyncRepository = FakeBleGlucoseSyncRepository();
   });
 
   tearDown(() {
@@ -53,6 +58,7 @@ void main() {
     fakeGlucoseReadingRepository.dispose();
     fakeHbA1cReadingRepository.dispose();
     fakeReminderRepository.dispose();
+    fakeBleGlucoseSyncRepository.dispose();
   });
 
   Widget createTestApp({String? initialLocation}) {
@@ -69,6 +75,9 @@ void main() {
         ),
         reminderRepositoryProvider.overrideWithValue(fakeReminderRepository),
         exportServiceProvider.overrideWithValue(fakeExportService),
+        bleGlucoseSyncRepositoryProvider.overrideWithValue(
+          fakeBleGlucoseSyncRepository,
+        ),
       ],
       child: Consumer(
         builder: (context, ref, _) {
@@ -202,6 +211,29 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(AddEditGlucoseReadingScreen), findsOneWidget);
+      },
+    );
+
+    testWidgets('Navigates to BleGlucoseSyncScreen on "/glucose/sync"', (
+      tester,
+    ) async {
+      await tester.pumpWidget(createTestApp(initialLocation: '/glucose/sync'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BleGlucoseSyncScreen), findsOneWidget);
+    });
+
+    testWidgets(
+      'Tapping Bluetooth action in AddEditGlucoseReadingScreen navigates to BleGlucoseSyncScreen',
+      (tester) async {
+        await tester.pumpWidget(createTestApp(initialLocation: '/glucose/add'));
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.bluetooth), findsOneWidget);
+        await tester.tap(find.byIcon(Icons.bluetooth));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(BleGlucoseSyncScreen), findsOneWidget);
       },
     );
 

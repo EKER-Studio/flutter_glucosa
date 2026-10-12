@@ -3,8 +3,10 @@ import 'package:flutter_glucosa/core/domain/enums/glucose_unit.dart';
 import 'package:flutter_glucosa/core/domain/enums/meal_context.dart';
 import 'package:flutter_glucosa/core/presentation/theme/app_theme.dart';
 import 'package:flutter_glucosa/features/glucose/data/providers/glucose_reading_repository_provider.dart';
+import 'package:flutter_glucosa/features/glucose/domain/entities/ble_saved_device.dart';
 import 'package:flutter_glucosa/features/glucose/domain/entities/glucose_reading.dart';
 import 'package:flutter_glucosa/features/glucose/domain/repositories/glucose_reading_repository.dart';
+import 'package:flutter_glucosa/features/glucose/presentation/providers/saved_ble_device_notifier.dart';
 import 'package:flutter_glucosa/features/glucose/presentation/screens/add_edit_glucose_reading_screen.dart';
 import 'package:flutter_glucosa/features/settings/data/providers/user_profile_repository_provider.dart';
 import 'package:flutter_glucosa/features/settings/domain/entities/user_profile.dart';
@@ -50,7 +52,11 @@ void main() {
     ).thenAnswer((_) => Stream.value([_existingReading]));
   });
 
-  Widget createWidget({int? readingId, GlucoseUnit unit = GlucoseUnit.mgDl}) {
+  Widget createWidget({
+    int? readingId,
+    GlucoseUnit unit = GlucoseUnit.mgDl,
+    BleSavedDevice? savedDevice,
+  }) {
     when(() => mockUserRepo.watch()).thenAnswer(
       (_) => Stream.value(
         UserProfile.defaults().copyWith(preferredGlucoseUnit: unit),
@@ -61,6 +67,7 @@ void main() {
       overrides: [
         glucoseReadingRepositoryProvider.overrideWithValue(mockGlucoseRepo),
         userProfileRepositoryProvider.overrideWithValue(mockUserRepo),
+        savedBleDeviceProvider.overrideWithValue(savedDevice),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -82,7 +89,27 @@ void main() {
       expect(find.byType(TextFormField), findsNWidgets(2)); // Value & notes
       expect(find.text('Save'), findsOneWidget);
       expect(find.byIcon(Icons.delete_outline), findsNothing);
+      expect(find.byIcon(Icons.bluetooth), findsOneWidget);
+      expect(find.byIcon(Icons.bluetooth_connected), findsNothing);
     });
+
+    testWidgets(
+      'renders quick sync button when a Bluetooth glucometer is saved',
+      (tester) async {
+        const savedDevice = BleSavedDevice(
+          id: 'AA:BB:CC:DD:EE:FF',
+          name: 'Contour Plus',
+          batteryLevel: 85,
+        );
+
+        await tester.pumpWidget(createWidget(savedDevice: savedDevice));
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.bluetooth), findsOneWidget);
+        expect(find.byIcon(Icons.bluetooth_connected), findsOneWidget);
+        expect(find.text('Sync from Contour Plus'), findsOneWidget);
+      },
+    );
 
     testWidgets('shows validation error when value is empty', (tester) async {
       await tester.pumpWidget(createWidget());
@@ -219,5 +246,27 @@ void main() {
       verify(() => mockGlucoseRepo.delete(10)).called(1);
       expect(find.text('Glucose reading deleted'), findsOneWidget);
     });
+
+    testWidgets(
+      'does not show Bluetooth sync actions in AppBar or form during edit mode',
+      (tester) async {
+        const savedDevice = BleSavedDevice(
+          id: 'AA:BB:CC:DD:EE:FF',
+          name: 'Contour Plus',
+          batteryLevel: 85,
+        );
+        when(
+          () => mockGlucoseRepo.watchById(10),
+        ).thenAnswer((_) => Stream.value(_existingReading));
+
+        await tester.pumpWidget(
+          createWidget(readingId: 10, savedDevice: savedDevice),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.bluetooth), findsNothing);
+        expect(find.byIcon(Icons.bluetooth_connected), findsNothing);
+      },
+    );
   });
 }
