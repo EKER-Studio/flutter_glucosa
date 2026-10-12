@@ -1,7 +1,11 @@
+import 'package:flutter_glucosa/core/domain/enums/meal_context.dart';
+import 'package:flutter_glucosa/features/glucose/data/datasources/ble/gls_measurement_context_parser.dart';
 import 'package:flutter_glucosa/features/glucose/data/datasources/ble/gls_measurement_parser.dart';
 import 'package:flutter_glucosa/features/glucose/data/datasources/ble/ieee11073_float_parser.dart';
 import 'package:flutter_glucosa/features/glucose/data/datasources/ble/racp_command_builder.dart';
 import 'package:flutter_glucosa/features/glucose/data/datasources/ble/racp_response_parser.dart';
+import 'package:flutter_glucosa/features/glucose/data/mappers/gls_record_mapper.dart';
+import 'package:flutter_glucosa/features/glucose/domain/entities/gls_measurement_context.dart';
 import 'package:flutter_glucosa/features/glucose/domain/entities/gls_record.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -127,6 +131,137 @@ void main() {
         0xCD, 0xCC, // Missing type/location and status
       ];
       expect(GlsMeasurementParser.parse(incompleteData), isNull);
+    });
+  });
+
+  group('GlsMeasurementContextParser', () {
+    test('returns null for data shorter than 3 bytes', () {
+      expect(GlsMeasurementContextParser.parse([0x00, 0x01]), isNull);
+    });
+
+    test('parses minimal context packet without optional fields', () {
+      final data = [
+        0x00, // Flags: none
+        0x07, 0x00, // Sequence Number: 7
+      ];
+      final context = GlsMeasurementContextParser.parse(data);
+      expect(context, isNotNull);
+      expect(context!.sequenceNumber, equals(7));
+      expect(context.mealType, isNull);
+      expect(context.carbohydrateType, isNull);
+      expect(context.medicationType, isNull);
+    });
+
+    test('parses context with meal, carbs, medication, tester, and HbA1c', () {
+      final data = [
+        0x77, // Flags: carbs(0x01) | meal(0x02) | testerHealth(0x04) | med(0x10) | medUnitLiter(0x20) | hbA1c(0x40) = 0x77
+        0x0A, 0x00, // Sequence Number: 10
+        0x01, // Carb ID: 1 (Breakfast)
+        0x2D, 0x00, // Carb amount: 45.0 grams (0x002D)
+        0x01, // Meal ID: 1 (Preprandial)
+        0x14, // Tester: 1 (Self), Health: 4 (Under Stress) -> 0x14
+        0x01, // Medication ID: 1 (Rapid-acting insulin)
+        0x04, 0x00, // Medication Amount: 4.0 (0x0004)
+        0x3E, 0xF0, // HbA1c: 6.2% (0xF03E: mantissa 62, exp -1)
+      ];
+
+      final context = GlsMeasurementContextParser.parse(data);
+      expect(context, isNotNull);
+      expect(context!.sequenceNumber, equals(10));
+      expect(context.carbohydrateType, equals('Breakfast'));
+      expect(context.carbohydrateGrams, closeTo(45.0, 0.001));
+      expect(context.mealType, equals('Preprandial'));
+      expect(context.tester, equals('Self'));
+      expect(context.health, equals('Under Stress'));
+      expect(context.medicationType, equals('Rapid-acting insulin'));
+      expect(context.medicationAmount, closeTo(4.0, 0.001));
+      expect(context.isMedicationInLiters, isTrue);
+      expect(context.hbA1cPercentage, closeTo(6.2, 0.01));
+    });
+
+    test('returns null when payload is shorter than flags require', () {
+      final truncated = [
+        0x01, // Flags: carb present (requires 3 extra bytes)
+        0x01, 0x00, // Sequence Number: 1
+        0x01, // Only carb ID, missing carb amount
+      ];
+      expect(GlsMeasurementContextParser.parse(truncated), isNull);
+    });
+  });
+
+  group('GlsRecordMapper with context', () {
+    test('maps Fasting context to MealContext.fasting', () {
+      final record = GlsRecord(
+        sequenceNumber: 1,
+        timestamp: DateTime(2026, 5, 10, 8, 0),
+        concentration: 0.001,
+        context: const GlsMeasurementContext(
+          sequenceNumber: 1,
+          mealType: 'Fasting',
+        ),
+      );
+
+      final domain = record.toDomain();
+      expect(domain.mealContext, equals(MealContext.fasting));
+      expect(domain.readingMgDl, equals(100));
+    });
+
+    test('maps Preprandial morning context to beforeBreakfast', () {
+      final record = GlsRecord(
+        sequenceNumber: 2,
+        timestamp: DateTime(2026, 5, 10, 8, 30),
+        concentration: 0.001,
+        context: const GlsMeasurementContext(
+          sequenceNumber: 2,
+          mealType: 'Preprandial',
+        ),
+      );
+
+      final domain = record.toDomain();
+      expect(domain.mealContext, equals(MealContext.beforeBreakfast));
+    });
+
+    test('maps Postprandial evening context to afterDinner', () {
+      final record = GlsRecord(
+        sequenceNumber: 3,
+        timestamp: DateTime(2026, 5, 10, 19, 0),
+        concentration: 0.001,
+        context: const GlsMeasurementContext(
+          sequenceNumber: 3,
+          mealType: 'Postprandial',
+        ),
+      );
+
+      final domain = record.toDomain();
+      expect(domain.mealContext, equals(MealContext.afterDinner));
+    });
+
+    test('populates notes with carbohydrates, medication, and health', () {
+      final record = GlsRecord(
+        sequenceNumber: 4,
+        timestamp: DateTime(2026, 5, 10, 12, 30),
+        concentration: 0.001,
+        sampleLocation: 'Finger',
+        context: const GlsMeasurementContext(
+          sequenceNumber: 4,
+          mealType: 'Postprandial',
+          carbohydrateType: 'Lunch',
+          carbohydrateGrams: 50.0,
+          medicationType: 'Rapid-acting insulin',
+          medicationAmount: 5.0,
+          health: 'Under Stress',
+        ),
+      );
+
+      final domain = record.toDomain();
+      expect(domain.mealContext, equals(MealContext.afterLunch));
+      expect(domain.notes, contains('Finger'));
+      expect(domain.notes, contains('Carbs: 50.0g (Lunch)'));
+      expect(
+        domain.notes,
+        contains('Medication: 5.0mg (Rapid-acting insulin)'),
+      );
+      expect(domain.notes, contains('Health: Under Stress'));
     });
   });
 
