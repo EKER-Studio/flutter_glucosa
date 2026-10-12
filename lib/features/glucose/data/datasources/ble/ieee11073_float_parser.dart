@@ -17,8 +17,14 @@ abstract final class Ieee11073FloatParser {
   /// or if the value represents NRes or Reserved.
   static double? parseSFloat(List<int> data, int offset) {
     if (offset + 1 >= data.length) return null;
-
     final raw = data[offset] | (data[offset + 1] << 8);
+    return parse16BitSFloat(raw);
+  }
+
+  /// Decodes a 16-bit raw integer into an IEEE-11073 SFLOAT double value.
+  ///
+  /// Returns `null` if the value represents NRes or Reserved.
+  static double? parse16BitSFloat(int raw) {
     final unsignedMantissa = raw & 0x0FFF;
 
     if (unsignedMantissa == _nanMantissa) return double.nan;

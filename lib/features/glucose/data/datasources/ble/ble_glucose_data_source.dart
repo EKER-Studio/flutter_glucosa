@@ -4,8 +4,10 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../../../../../core/utils/app_logger.dart';
 import '../../../domain/entities/ble_device_info.dart';
+import '../../../domain/entities/gls_measurement_context.dart';
 import '../../../domain/entities/gls_record.dart';
 import 'ble_glucose_constants.dart';
+import 'gls_measurement_context_parser.dart';
 import 'gls_measurement_parser.dart';
 import 'racp_command_builder.dart';
 import 'racp_response_parser.dart';
@@ -84,7 +86,9 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
   }) async {
     final device = BluetoothDevice.fromId(deviceId);
     final records = <GlsRecord>[];
+    final contexts = <int, GlsMeasurementContext>{};
     StreamSubscription<List<int>>? measurementSub;
+    StreamSubscription<List<int>>? contextSub;
     StreamSubscription<List<int>>? racpSub;
 
     AppLogger.info('Connecting to glucometer $deviceId...', tag: _tag);
@@ -110,6 +114,13 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
         ),
       );
 
+      final contextChars = glsService.characteristics.where(
+        (c) =>
+            c.uuid ==
+            BleGlucoseConstants.glucoseMeasurementContextCharacteristicUuid,
+      );
+      final contextChar = contextChars.isNotEmpty ? contextChars.first : null;
+
       final racpChar = glsService.characteristics.firstWhere(
         (c) => c.uuid == BleGlucoseConstants.racpCharacteristicUuid,
         orElse: () =>
@@ -130,6 +141,25 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
           records.add(record);
         }
       });
+
+      // Subscribe to Glucose Measurement Context if supported (NOTIFY)
+      if (contextChar != null) {
+        AppLogger.info(
+          'Enabling Glucose Measurement Context (0x2A34) notifications',
+          tag: _tag,
+        );
+        await contextChar.setNotifyValue(true);
+        contextSub = contextChar.onValueReceived.listen((data) {
+          final ctx = GlsMeasurementContextParser.parse(data);
+          if (ctx != null) {
+            AppLogger.debug(
+              'Received GLS context: #${ctx.sequenceNumber}',
+              tag: _tag,
+            );
+            contexts[ctx.sequenceNumber] = ctx;
+          }
+        });
+      }
 
       // Subscribe to RACP (INDICATE)
       await racpChar.setNotifyValue(true);
@@ -164,13 +194,19 @@ class BleGlucoseDataSourceImpl implements BleGlucoseDataSource {
         },
       );
 
+      final enrichedRecords = records.map((r) {
+        final ctx = contexts[r.sequenceNumber];
+        return ctx != null ? r.copyWith(context: ctx) : r;
+      }).toList();
+
       AppLogger.info(
-        'Download complete. Total records received: ${records.length}',
+        'Download complete. Total records received: ${enrichedRecords.length}',
         tag: _tag,
       );
-      return records;
+      return enrichedRecords;
     } finally {
       await measurementSub?.cancel();
+      await contextSub?.cancel();
       await racpSub?.cancel();
       try {
         AppLogger.info('Disconnecting from $deviceId', tag: _tag);
