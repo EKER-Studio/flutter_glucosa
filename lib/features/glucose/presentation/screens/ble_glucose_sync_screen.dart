@@ -6,8 +6,10 @@ import '../../../../core/presentation/widgets/app_loading_indicator.dart';
 import '../../../../core/presentation/widgets/app_top_bar.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/ble_device_info.dart';
+import '../../domain/entities/ble_saved_device.dart';
 import '../providers/ble_glucose_scan_notifier.dart';
 import '../providers/ble_glucose_sync_notifier.dart';
+import '../providers/saved_ble_device_notifier.dart';
 
 /// Screen presenting Bluetooth LE glucometer discovery and data synchronization.
 class BleGlucoseSyncScreen extends ConsumerStatefulWidget {
@@ -36,12 +38,25 @@ class _BleGlucoseSyncScreenState extends ConsumerState<BleGlucoseSyncScreen> {
 
     final scanState = ref.watch(bleGlucoseScanProvider);
     final syncStatus = ref.watch(bleGlucoseSyncProvider);
+    final savedDevice = ref.watch(savedBleDeviceProvider);
 
     ref.listen<BleSyncStatus>(bleGlucoseSyncProvider, (previous, next) {
       if (next is BleSyncSuccess) {
-        final message = next.importedCount > 0
-            ? l10n.bleSyncSuccess(next.importedCount, next.deviceName)
-            : l10n.bleSyncNoNewReadings;
+        final String message;
+        if (next.importedCount > 0) {
+          if (next.batteryLevel != null) {
+            message = l10n.bleSyncSuccessWithBattery(
+              next.importedCount,
+              next.deviceName,
+              next.batteryLevel!,
+            );
+          } else {
+            message = l10n.bleSyncSuccess(next.importedCount, next.deviceName);
+          }
+        } else {
+          message = l10n.bleSyncNoNewReadings;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
@@ -156,12 +171,32 @@ class _BleGlucoseSyncScreenState extends ConsumerState<BleGlucoseSyncScreen> {
                 const SizedBox(height: 20),
               ],
 
+              // Remembered glucometer card (if previously paired)
+              if (savedDevice != null) ...[
+                _SavedDeviceCard(
+                  device: savedDevice,
+                  isSyncing: isSyncing,
+                  onSync: () => ref
+                      .read(bleGlucoseSyncProvider.notifier)
+                      .syncDevice(
+                        BleDeviceInfo(
+                          id: savedDevice.id,
+                          name: savedDevice.name,
+                          rssi: 0,
+                        ),
+                      ),
+                  onForget: () =>
+                      ref.read(savedBleDeviceProvider.notifier).forgetDevice(),
+                ),
+                const SizedBox(height: 24),
+              ],
+
               // Header for discovered devices
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    l10n.bleScanButton,
+                    l10n.bleNearbyDevicesTitle,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -223,12 +258,15 @@ class _BleGlucoseSyncScreenState extends ConsumerState<BleGlucoseSyncScreen> {
                 )
               else
                 ...scanState.devices.map(
-                  (device) => _BleDeviceCard(
-                    device: device,
-                    isSyncing: isSyncing,
-                    onSync: () => ref
-                        .read(bleGlucoseSyncProvider.notifier)
-                        .syncDevice(device),
+                  (device) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _BleDeviceTile(
+                      device: device,
+                      isSyncing: isSyncing,
+                      onSync: () => ref
+                          .read(bleGlucoseSyncProvider.notifier)
+                          .syncDevice(device),
+                    ),
                   ),
                 ),
             ],
@@ -239,12 +277,129 @@ class _BleGlucoseSyncScreenState extends ConsumerState<BleGlucoseSyncScreen> {
   }
 }
 
-class _BleDeviceCard extends StatelessWidget {
+class _SavedDeviceCard extends StatelessWidget {
+  final BleSavedDevice device;
+  final bool isSyncing;
+  final VoidCallback onSync;
+  final VoidCallback onForget;
+
+  const _SavedDeviceCard({
+    required this.device,
+    required this.isSyncing,
+    required this.onSync,
+    required this.onForget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.surfaceContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: colorScheme.primaryContainer,
+                  child: Icon(
+                    Icons.bluetooth_connected,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.bleSavedDeviceTitle,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        device.name,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (device.batteryLevel != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.battery_std,
+                          size: 16,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${device.batteryLevel}%',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.sync),
+                    label: Text(l10n.bleSyncNow),
+                    onPressed: isSyncing ? null : onSync,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: l10n.bleForgetDevice,
+                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                  onPressed: isSyncing ? null : onForget,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BleDeviceTile extends StatelessWidget {
   final BleDeviceInfo device;
   final bool isSyncing;
   final VoidCallback onSync;
 
-  const _BleDeviceCard({
+  const _BleDeviceTile({
     required this.device,
     required this.isSyncing,
     required this.onSync,
@@ -258,47 +413,24 @@ class _BleDeviceCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.only(bottom: 12),
       color: colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: colorScheme.primaryContainer,
-              child: Icon(
-                Icons.bluetooth_connected,
-                color: colorScheme.onPrimaryContainer,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    device.name,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'RSSI: ${device.rssi} dBm',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.outline,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            FilledButton(
-              onPressed: isSyncing ? null : onSync,
-              child: Text(l10n.bleSyncButton),
-            ),
-          ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: colorScheme.surfaceContainerHighest,
+          child: Icon(Icons.bluetooth, color: colorScheme.onSurfaceVariant),
+        ),
+        title: Text(
+          device.name,
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          device.id,
+          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
+        ),
+        trailing: FilledButton.tonal(
+          onPressed: isSyncing ? null : onSync,
+          child: Text(l10n.bleSyncButton),
         ),
       ),
     );
