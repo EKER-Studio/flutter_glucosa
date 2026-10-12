@@ -45,7 +45,7 @@ final class BleGlucoseSyncNotifierProvider
 }
 
 String _$bleGlucoseSyncNotifierHash() =>
-    r'9dd20362d176ca91d93727338cb0eab09b2b9555';
+    r'8a214dde7dbec73f860f9fd23d3c14138fbd087b';
 
 /// Riverpod notifier managing synchronization state with a target BLE glucometer.
 

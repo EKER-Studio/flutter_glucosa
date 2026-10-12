@@ -10,7 +10,8 @@ part of 'app_startup_provider.dart';
 // ignore_for_file: type=lint, type=warning
 /// Pre-warms and initializes all critical asynchronous dependencies before UI rendering.
 ///
-/// Watches [isarDbProvider] to ensure local database collections are open and ready.
+/// Watches [isarDbProvider] to ensure local database collections are open and ready,
+/// and pre-loads persisted BLE glucometer preferences.
 /// Returns a [Future] completing when all startup services are initialized.
 
 @ProviderFor(appStartup)
@@ -18,7 +19,8 @@ final appStartupProvider = AppStartupProvider._();
 
 /// Pre-warms and initializes all critical asynchronous dependencies before UI rendering.
 ///
-/// Watches [isarDbProvider] to ensure local database collections are open and ready.
+/// Watches [isarDbProvider] to ensure local database collections are open and ready,
+/// and pre-loads persisted BLE glucometer preferences.
 /// Returns a [Future] completing when all startup services are initialized.
 
 final class AppStartupProvider
@@ -26,7 +28,8 @@ final class AppStartupProvider
     with $FutureModifier<void>, $FutureProvider<void> {
   /// Pre-warms and initializes all critical asynchronous dependencies before UI rendering.
   ///
-  /// Watches [isarDbProvider] to ensure local database collections are open and ready.
+  /// Watches [isarDbProvider] to ensure local database collections are open and ready,
+  /// and pre-loads persisted BLE glucometer preferences.
   /// Returns a [Future] completing when all startup services are initialized.
   AppStartupProvider._()
     : super(
@@ -53,4 +56,4 @@ final class AppStartupProvider
   }
 }
 
-String _$appStartupHash() => r'ad4eb1c533c7255472996921010f6b4768c2320d';
+String _$appStartupHash() => r'5845f1658379cb689b32fdebec931422173f9c37';

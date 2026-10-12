@@ -45,7 +45,7 @@ final class BleGlucoseScanNotifierProvider
 }
 
 String _$bleGlucoseScanNotifierHash() =>
-    r'035bf8a8a4e5e16aa2f8d8fd3eedd38f6065abd1';
+    r'0dc18af79ebb7bb9b50a4988637dc296a65b128a';
 
 /// Riverpod notifier managing Bluetooth LE discovery for compatible glucometers.
 
