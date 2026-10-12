@@ -42,6 +42,12 @@ class ValidationFailure extends Failure {
   final Map<String, String> fieldErrors;
 }
 
+/// Failure originating from a Bluetooth Low Energy operation or device communication.
+class BluetoothFailure extends Failure {
+  /// Creates a Bluetooth failure instance with the underlying error [message].
+  const BluetoothFailure(super.message);
+}
+
 /// Extension mapping domain [Failure] instances to localized or user-safe strings.
 extension FailureUserMessage on Failure {
   /// A human-readable error message formatted for safe UI presentation.

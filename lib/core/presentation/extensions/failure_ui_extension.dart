@@ -10,5 +10,7 @@ extension LocalizedFailureUserMessage on Failure {
     NetworkFailure() => l10n.errorNetwork,
     UnauthorizedFailure() => l10n.errorUnauthorized,
     ValidationFailure() => l10n.errorValidation,
+    BluetoothFailure(:final message) =>
+      message.isNotEmpty ? message : l10n.errorNetwork,
   };
 }
