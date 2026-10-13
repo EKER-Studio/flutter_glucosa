@@ -8,6 +8,7 @@ import '../../../../core/presentation/utils/picker_helpers.dart';
 import '../../../../core/presentation/widgets/app_empty_view.dart';
 import '../../../../core/presentation/widgets/app_error_view.dart';
 import '../../../../core/presentation/widgets/app_loading_indicator.dart';
+import '../../../../core/presentation/widgets/app_top_bar.dart';
 import '../../../../core/presentation/widgets/clamped_layout.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/reminder.dart';
@@ -26,7 +27,7 @@ class RemindersScreen extends ConsumerWidget {
     final remindersAsync = ref.watch(reminderListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reminders)),
+      appBar: AppTopBar(title: l10n.reminders),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddEditReminderDialog(context, ref),
         icon: const Icon(Icons.add_alarm_outlined),

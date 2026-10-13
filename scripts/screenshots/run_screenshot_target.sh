@@ -76,7 +76,7 @@ for TARGET_DEVICE in "${TARGETS[@]}"; do
         echo -e "${YELLOW}⚙️  [STEP] Launching emulator $EMULATOR_ID ($RESOLUTION)...${NC}"
         flutter emulators --launch "$EMULATOR_ID" || true
         for _ in $(seq 1 60); do
-            DEVICE_ID=$(adb devices | grep -w "device" | grep "emulator-" | head -n 1 | awk '{print $1}')
+            DEVICE_ID=$(adb devices | grep -w "device" | grep "emulator-" | head -n 1 | awk '{print $1}' || true)
             if [ -n "$DEVICE_ID" ]; then break; fi
             sleep 2
         done
