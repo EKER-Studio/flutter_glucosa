@@ -91,9 +91,9 @@ void main() {
             // Scroll down so habits and milestone section are prominent.
             // NOTE: nested chip rows are scrollable too — the page scroll
             // is the outermost match.
-            final scrollable = find.byType(SingleChildScrollView).first;
+            final scrollable = find.byType(Scrollable).first;
             if (scrollable.evaluate().isNotEmpty) {
-              await tester.drag(scrollable, const Offset(0, -350));
+              tester.state<ScrollableState>(scrollable).position.jumpTo(350);
               await tester.pumpAndSettle();
             }
 
@@ -311,13 +311,10 @@ void main() {
             await tester.pump();
             await tester.pump(const Duration(milliseconds: 300));
 
-            final scrollable = find.byType(SingleChildScrollView).first;
+            final scrollable = find.byType(Scrollable).first;
             expect(scrollable, findsOneWidget);
-
-            for (int i = 0; i < 4; i++) {
-              await tester.drag(scrollable, const Offset(0, -300));
-              await tester.pumpAndSettle();
-            }
+            tester.state<ScrollableState>(scrollable).position.jumpTo(1150);
+            await tester.pumpAndSettle();
 
             final periodComparison = find.byType(PeriodComparisonCard);
             expect(periodComparison, findsOneWidget);
