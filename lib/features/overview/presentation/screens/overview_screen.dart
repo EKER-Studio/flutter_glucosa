@@ -6,8 +6,6 @@ import '../../../../core/presentation/widgets/add_reading_bottom_sheet.dart';
 import '../../../../core/presentation/widgets/app_error_view.dart';
 import '../../../../core/presentation/widgets/app_top_bar.dart';
 import '../../../../core/presentation/widgets/clamped_layout.dart';
-import '../../../../core/domain/enums/glucose_range_preset.dart';
-import '../../../../core/domain/enums/glucose_unit.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../glucose/presentation/providers/estimated_hba1c_provider.dart';
@@ -21,8 +19,11 @@ import '../../../statistics/presentation/widgets/sections/habits_activity_card.d
 import '../../../statistics/presentation/widgets/sections/milestones_card.dart';
 import '../../../statistics/presentation/widgets/sections/period_comparison_card.dart';
 import '../providers/overview_insights_provider.dart';
-import '../widgets/metric_trend_card.dart';
 import '../widgets/daily_tip_card.dart';
+import '../widgets/estimated_hba1c_card.dart';
+import '../widgets/metric_trend_card.dart';
+import '../widgets/overview_empty_reading_card.dart';
+import '../widgets/overview_target_range_card.dart';
 import '../widgets/today_shimmer_skeleton.dart';
 import '../widgets/widget_promo_card.dart';
 
@@ -92,35 +93,7 @@ class OverviewScreen extends ConsumerWidget {
                 latestReadingAsync.when(
                   data: (reading) {
                     if (reading == null) {
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.water_drop_outlined,
-                                size: 40,
-                                color: theme.colorScheme.outline,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                l10n.noReadingsYet,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-                              FilledButton.icon(
-                                icon: const Icon(Icons.add_rounded, size: 18),
-                                label: Text(l10n.addGlucoseReading),
-                                onPressed: () =>
-                                    context.push(AppRoute.addGlucose.path),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      return const OverviewEmptyReadingCard();
                     }
                     return GlucoseReadingCard(
                       reading: reading,
@@ -147,66 +120,7 @@ class OverviewScreen extends ConsumerWidget {
                 estimatedHbA1cAsync.when(
                   data: (a1c) {
                     if (a1c == null) return const SizedBox.shrink();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          l10n.estimatedHbA1c,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.science_outlined,
-                                    color: theme.colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${a1c.toStringAsFixed(1)}%',
-                                        style: theme.textTheme.headlineMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: theme.colorScheme.primary,
-                                            ),
-                                      ),
-                                      Text(
-                                        l10n.estimatedHbA1cSubtitle,
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    );
+                    return EstimatedHbA1cCard(estimatedHbA1c: a1c);
                   },
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
@@ -231,66 +145,7 @@ class OverviewScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.track_changes_rounded,
-                            color: theme.colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                profileAsync
-                                        .value
-                                        ?.targetRange
-                                        .preset
-                                        .displayName ??
-                                    GlucoseRangePreset.ada.displayName,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                l10n.targetRangeValue(
-                                  '${profileAsync.value?.targetRange.minMgDl ?? 70}',
-                                  '${profileAsync.value?.targetRange.maxMgDl ?? 180}',
-                                  profileAsync
-                                          .value
-                                          ?.preferredGlucoseUnit
-                                          .displayName ??
-                                      GlucoseUnit.mgDl.displayName,
-                                  profileAsync
-                                          .value
-                                          ?.targetRange
-                                          .preset
-                                          .displayName ??
-                                      GlucoseRangePreset.ada.displayName,
-                                ),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                OverviewTargetRangeCard(profile: profileAsync.value),
 
                 readingsAsync.when(
                   data: (readings) {

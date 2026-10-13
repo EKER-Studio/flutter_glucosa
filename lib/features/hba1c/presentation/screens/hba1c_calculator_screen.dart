@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/domain/enums/glucose_unit.dart';
 import '../../../../core/domain/enums/hba1c_unit.dart';
-import '../../../../core/domain/utils/glucose_converter.dart';
 import '../../../../core/presentation/extensions/failure_ui_extension.dart';
 import '../../../../core/presentation/utils/app_snackbar.dart';
 import '../../../../core/presentation/widgets/clamped_layout.dart';
@@ -12,6 +11,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/user_profile_notifier.dart';
 import '../../domain/entities/hba1c_reading.dart';
 import '../providers/hba1c_reading_list_notifier.dart';
+import '../utils/hba1c_calculator_coordinator.dart';
 import '../widgets/calculator/average_glucose_input_card.dart';
 import '../widgets/calculator/estimated_hba1c_input_card.dart';
 import '../widgets/calculator/formula_explanation_card.dart';
@@ -61,36 +61,13 @@ class _HbA1cCalculatorScreenState extends ConsumerState<HbA1cCalculatorScreen> {
     if (_isUpdating) return;
     _isUpdating = true;
 
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) {
-      _hba1cController.clear();
-      _isUpdating = false;
-      setState(() {});
-      return;
-    }
-
-    final parsed = double.tryParse(trimmed.replaceAll(',', '.'));
-    if (parsed == null || parsed <= 0) {
-      _isUpdating = false;
-      setState(() {});
-      return;
-    }
-
-    final glucoseMgDl = _glucoseUnit == GlucoseUnit.mmolL
-        ? GlucoseConverter.mmolLToMgDl(parsed)
-        : parsed;
-
-    final estHbA1cPercentage = GlucoseConverter.glucoseToEstimatedHbA1c(
-      glucoseMgDl,
+    final result = HbA1cCalculatorCoordinator.calculateHbA1cFromGlucose(
+      glucoseText: text,
+      glucoseUnit: _glucoseUnit,
+      hba1cUnit: _hba1cUnit,
     );
 
-    final displayHbA1c = _hba1cUnit == HbA1cUnit.mmolMol
-        ? GlucoseConverter.percentageToMmolMol(
-            estHbA1cPercentage,
-          ).toStringAsFixed(1)
-        : estHbA1cPercentage.toStringAsFixed(2);
-
-    _hba1cController.text = displayHbA1c;
+    _hba1cController.text = result;
     _isUpdating = false;
     setState(() {});
   }
@@ -99,91 +76,47 @@ class _HbA1cCalculatorScreenState extends ConsumerState<HbA1cCalculatorScreen> {
     if (_isUpdating) return;
     _isUpdating = true;
 
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) {
-      _glucoseController.clear();
-      _isUpdating = false;
-      setState(() {});
-      return;
-    }
-
-    final parsed = double.tryParse(trimmed.replaceAll(',', '.'));
-    if (parsed == null || parsed <= 0) {
-      _isUpdating = false;
-      setState(() {});
-      return;
-    }
-
-    final hba1cPercentage = _hba1cUnit == HbA1cUnit.mmolMol
-        ? GlucoseConverter.mmolMolToPercentage(parsed)
-        : parsed;
-
-    final estGlucoseMgDl = GlucoseConverter.hba1cToEstimatedGlucose(
-      hba1cPercentage,
+    final result = HbA1cCalculatorCoordinator.calculateGlucoseFromHbA1c(
+      hba1cText: text,
+      hba1cUnit: _hba1cUnit,
+      glucoseUnit: _glucoseUnit,
     );
 
-    final displayGlucose = _glucoseUnit == GlucoseUnit.mmolL
-        ? GlucoseConverter.mgDlToMmolL(estGlucoseMgDl).toStringAsFixed(1)
-        : estGlucoseMgDl.round().toString();
-
-    _glucoseController.text = displayGlucose;
+    _glucoseController.text = result;
     _isUpdating = false;
     setState(() {});
   }
 
   void _onGlucoseUnitChanged(GlucoseUnit newUnit) {
     if (_glucoseUnit == newUnit) return;
-    final currentText = _glucoseController.text.trim();
-    final parsed = double.tryParse(currentText.replaceAll(',', '.'));
-
     setState(() {
+      _glucoseController.text =
+          HbA1cCalculatorCoordinator.convertGlucoseDisplay(
+            text: _glucoseController.text,
+            oldUnit: _glucoseUnit,
+            newUnit: newUnit,
+          );
       _glucoseUnit = newUnit;
-      if (parsed != null && parsed > 0) {
-        if (newUnit == GlucoseUnit.mmolL) {
-          _glucoseController.text = GlucoseConverter.mgDlToMmolL(
-            parsed,
-          ).toStringAsFixed(1);
-        } else {
-          _glucoseController.text = GlucoseConverter.mmolLToMgDl(
-            parsed,
-          ).toString();
-        }
-      }
     });
   }
 
   void _onHbA1cUnitChanged(HbA1cUnit newUnit) {
     if (_hba1cUnit == newUnit) return;
-    final currentText = _hba1cController.text.trim();
-    final parsed = double.tryParse(currentText.replaceAll(',', '.'));
-
     setState(() {
+      _hba1cController.text = HbA1cCalculatorCoordinator.convertHbA1cDisplay(
+        text: _hba1cController.text,
+        oldUnit: _hba1cUnit,
+        newUnit: newUnit,
+      );
       _hba1cUnit = newUnit;
-      if (parsed != null && parsed > 0) {
-        if (newUnit == HbA1cUnit.mmolMol) {
-          _hba1cController.text = GlucoseConverter.percentageToMmolMol(
-            parsed,
-          ).toStringAsFixed(1);
-        } else {
-          _hba1cController.text = GlucoseConverter.mmolMolToPercentage(
-            parsed,
-          ).toStringAsFixed(2);
-        }
-      }
     });
   }
 
-  double? get _currentHbA1cPercentage {
-    final text = _hba1cController.text.trim();
-    if (text.isEmpty) return null;
-    final parsed = double.tryParse(text.replaceAll(',', '.'));
-    if (parsed == null || parsed <= 0) return null;
-
-    if (_hba1cUnit == HbA1cUnit.mmolMol) {
-      return GlucoseConverter.mmolMolToPercentage(parsed);
-    }
-    return parsed;
-  }
+  double? get _currentHbA1cPercentage =>
+      HbA1cCalculatorCoordinator.parseHbA1cPercentage(
+        text: _hba1cController.text,
+        hba1cUnit: _hba1cUnit,
+      );
 
   Future<void> _saveReading() async {
     final hba1cPercentage = _currentHbA1cPercentage;

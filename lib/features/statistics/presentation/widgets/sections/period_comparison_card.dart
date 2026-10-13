@@ -8,6 +8,7 @@ import 'package:flutter_glucosa/features/glucose/domain/entities/glucose_reading
 import 'package:flutter_glucosa/features/statistics/domain/entities/period_comparison.dart';
 import 'package:flutter_glucosa/features/statistics/domain/services/period_comparison_calculator.dart';
 import 'package:flutter_glucosa/features/statistics/presentation/utils/period_range_label.dart';
+import 'package:flutter_glucosa/features/statistics/presentation/widgets/sections/period_comparison_row.dart';
 import 'package:flutter_glucosa/l10n/app_localizations.dart';
 
 /// Card widget presenting comparative clinical analysis between rolling time windows.
@@ -153,8 +154,7 @@ class _PeriodComparisonCardState extends State<PeriodComparisonCard> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                _buildComparisonRow(
-                  context,
+                PeriodComparisonRow(
                   title: l10n.meanGlucose,
                   currentVal: _formatGlucose(
                     comparison.currentPeriod.meanGlucoseMgDl,
@@ -171,8 +171,7 @@ class _PeriodComparisonCardState extends State<PeriodComparisonCard> {
                   needsAttentionColor: cs.error,
                 ),
                 const Divider(height: 16),
-                _buildComparisonRow(
-                  context,
+                PeriodComparisonRow(
                   title: l10n.timeInRangeShort,
                   currentVal:
                       '${(comparison.currentPeriod.tirPercentage ?? 0).toStringAsFixed(0)}%',
@@ -186,8 +185,7 @@ class _PeriodComparisonCardState extends State<PeriodComparisonCard> {
                   needsAttentionColor: cs.error,
                 ),
                 const Divider(height: 16),
-                _buildComparisonRow(
-                  context,
+                PeriodComparisonRow(
                   title: l10n.hypoIncidentsLabel,
                   currentVal: '${comparison.currentPeriod.hypoCount}',
                   previousVal: '${comparison.previousPeriod.hypoCount}',
@@ -221,71 +219,6 @@ class _PeriodComparisonCardState extends State<PeriodComparisonCard> {
         visualDensity: VisualDensity.compact,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-    );
-  }
-
-  Widget _buildComparisonRow(
-    BuildContext context, {
-    required String title,
-    required String currentVal,
-    required String previousVal,
-    required String? delta,
-    required bool isPositiveTrend,
-    required Color inRangeColor,
-    required Color needsAttentionColor,
-  }) {
-    final cs = Theme.of(context).colorScheme;
-    final trendColor = isPositiveTrend ? inRangeColor : needsAttentionColor;
-
-    return Row(
-      children: [
-        Expanded(
-          flex: 4,
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: cs.onSurface,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Text(
-            currentVal,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: cs.onSurface,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Text(
-            previousVal,
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-          ),
-        ),
-        if (delta != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: trendColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              delta,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: trendColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-      ],
     );
   }
 
