@@ -77,22 +77,29 @@ class PeriodComparisonCalculator {
     final hasComparisonData =
         currentEntries.isNotEmpty && previousEntries.isNotEmpty;
 
-    final deltaMeanGlucose =
-        (currentSummary.meanGlucoseMgDl != null &&
-            previousSummary.meanGlucoseMgDl != null)
-        ? currentSummary.meanGlucoseMgDl! - previousSummary.meanGlucoseMgDl!
-        : null;
+    final deltaMeanGlucose = switch ((
+      currentSummary.meanGlucoseMgDl,
+      previousSummary.meanGlucoseMgDl,
+    )) {
+      (final cur?, final prev?) => cur - prev,
+      _ => null,
+    };
 
-    final deltaGlucoseSd =
-        (currentSummary.glucoseSd != null && previousSummary.glucoseSd != null)
-        ? currentSummary.glucoseSd! - previousSummary.glucoseSd!
-        : null;
+    final deltaGlucoseSd = switch ((
+      currentSummary.glucoseSd,
+      previousSummary.glucoseSd,
+    )) {
+      (final cur?, final prev?) => cur - prev,
+      _ => null,
+    };
 
-    final deltaTirPercentage =
-        (currentSummary.tirPercentage != null &&
-            previousSummary.tirPercentage != null)
-        ? currentSummary.tirPercentage! - previousSummary.tirPercentage!
-        : null;
+    final deltaTirPercentage = switch ((
+      currentSummary.tirPercentage,
+      previousSummary.tirPercentage,
+    )) {
+      (final cur?, final prev?) => cur - prev,
+      _ => null,
+    };
 
     final deltaReadingCount =
         currentSummary.readingCount - previousSummary.readingCount;
