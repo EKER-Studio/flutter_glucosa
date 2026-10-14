@@ -5,7 +5,7 @@ import 'health_service.dart';
 part 'health_service_provider.g.dart';
 
 /// Dependency injection provider supplying the shared [HealthService] instance.
-@riverpod
+@Riverpod(keepAlive: true)
 HealthService healthService(Ref ref) {
   return NativeHealthService();
 }
