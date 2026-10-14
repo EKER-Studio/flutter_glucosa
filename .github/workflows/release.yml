@@ -66,7 +66,6 @@ jobs:
           if [ -f "android/app/google-services.json" ] && ! grep -q "com.ekerstudio.glucosa.dev" android/app/google-services.json; then
             python3 -c "import copy, json; path='android/app/google-services.json'; data=json.load(open(path)); client=copy.deepcopy(data['client'][0]); client['client_info']['android_client_info']['package_name']='com.ekerstudio.glucosa.dev'; data['client'].append(client); json.dump(data, open(path, 'w'), indent=2)"
           fi
-          printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > android/app/google-services.json
 
       - name: Cache Isar core binary
         id: cache-isar
