@@ -25,7 +25,7 @@ final class HealthServiceProvider
         argument: null,
         retry: null,
         name: r'healthServiceProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -52,4 +52,4 @@ final class HealthServiceProvider
   }
 }
 
-String _$healthServiceHash() => r'a56e45bf3a20a3891b0ba78c14ace647460c8f8a';
+String _$healthServiceHash() => r'faec1d1cc3f0391ef32ac8a3dc6d69b2f0f77555';
