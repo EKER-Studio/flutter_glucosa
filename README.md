@@ -15,13 +15,17 @@
 
 ## 📸 Screenshots
 
-| Overview | History | Statistics |
+| Splash Screen | Overview | History |
 |:---:|:---:|:---:|
-| <img src="doc/screenshots/overview.png" width="220" alt="Overview"> | <img src="doc/screenshots/history.png" width="220" alt="History"> | <img src="doc/screenshots/statistics.png" width="220" alt="Statistics"> |
+| <img src="doc/screenshots/splash.png" width="220" alt="Splash Screen"> | <img src="doc/screenshots/overview.png" width="220" alt="Overview"> | <img src="doc/screenshots/history.png" width="220" alt="History"> |
 
-| Calendar | Reminders | Settings |
+| Statistics | Calendar | Reminders |
 |:---:|:---:|:---:|
-| <img src="doc/screenshots/calendar.png" width="220" alt="Calendar"> | <img src="doc/screenshots/reminders.png" width="220" alt="Reminders"> | <img src="doc/screenshots/settings.png" width="220" alt="Settings"> |
+| <img src="doc/screenshots/statistics.png" width="220" alt="Statistics"> | <img src="doc/screenshots/calendar.png" width="220" alt="Calendar"> | <img src="doc/screenshots/reminders.png" width="220" alt="Reminders"> |
+
+| HbA1c Calculator | Home Widgets | Settings |
+|:---:|:---:|:---:|
+| <img src="doc/screenshots/calculator.png" width="220" alt="HbA1c Calculator"> | <img src="doc/screenshots/home_widgets.png" width="220" alt="Home Widgets"> | <img src="doc/screenshots/settings.png" width="220" alt="Settings"> |
 
 ---
 
