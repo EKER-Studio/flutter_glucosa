@@ -2,6 +2,10 @@
 -repackageclasses ''
 -allowaccessmodification
 
+# App widget providers declared in AndroidManifest — R8 must not rename or remove them
+-keep class com.ekerstudio.glucosa.GlucosaAppWidgetProvider { *; }
+-keep class com.ekerstudio.glucosa.GlucosaFullAppWidgetProvider { *; }
+
 # Flutter Local Notifications Plugin
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
 -keep class com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver { *; }
