@@ -129,9 +129,10 @@ class MilestoneCalculator {
           Duration(days: r.createdAt.weekday - 1),
         );
         final key = '${monday.year}-${monday.month}-${monday.day}';
-        weekendDaysLogged.putIfAbsent(key, () => {}).add(r.createdAt.weekday);
-        if (weekendDaysLogged[key]!.contains(DateTime.saturday) &&
-            weekendDaysLogged[key]!.contains(DateTime.sunday)) {
+        final weekendDays = weekendDaysLogged.putIfAbsent(key, () => <int>{});
+        weekendDays.add(r.createdAt.weekday);
+        if (weekendDays.contains(DateTime.saturday) &&
+            weekendDays.contains(DateTime.sunday)) {
           weekendSaturdaysWithSundays.add(key);
         }
       }
