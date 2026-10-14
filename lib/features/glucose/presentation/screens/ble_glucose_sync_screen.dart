@@ -114,7 +114,6 @@ class _BleGlucoseSyncScreenState extends ConsumerState<BleGlucoseSyncScreen> {
               vertical: 16,
             ),
             children: [
-              // Information banner
               Card(
                 elevation: 0,
                 color: colorScheme.surfaceContainerHighest,
@@ -173,7 +172,6 @@ class _BleGlucoseSyncScreenState extends ConsumerState<BleGlucoseSyncScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // Remembered glucometer card (if previously paired)
               if (savedDevice != null) ...[
                 BleSavedDeviceCard(
                   device: savedDevice,
@@ -193,7 +191,6 @@ class _BleGlucoseSyncScreenState extends ConsumerState<BleGlucoseSyncScreen> {
                 const SizedBox(height: 24),
               ],
 
-              // Header for discovered devices
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
