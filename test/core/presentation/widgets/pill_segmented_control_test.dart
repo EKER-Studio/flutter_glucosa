@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_glucosa/core/presentation/widgets/pill_segmented_control.dart';
+import 'package:flutter_glucosa/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -8,6 +9,7 @@ void main() {
       var selected = 'a';
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
           home: Scaffold(
             body: StatefulBuilder(
               builder: (context, setState) => PillSegmentedControl<String>(
@@ -36,6 +38,7 @@ void main() {
       var calls = 0;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
           home: Scaffold(
             body: PillSegmentedControl<String>(
               segments: const [

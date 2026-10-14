@@ -42,8 +42,7 @@ class PillSegmentedControl<T extends Object> extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     assert(segments.isNotEmpty, 'PillSegmentedControl needs segments');
 
-    final selectedLabel =
-        AppLocalizations.of(context)?.selectedState ?? 'selected';
+    final selectedLabel = AppLocalizations.of(context)!.selectedState;
     return Semantics(
       container: true,
       label: segments
